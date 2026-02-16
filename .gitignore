@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# API
+api/dist
+api/.env
+api/.env.*
+
+# Web
+apps/web/.next
+apps/web/out
+apps/web/.env
+apps/web/.env.*
+
+# Misc
+.DS_Store
+*.log
+*.tsbuildinfo
+.next/
