@@ -362,22 +362,18 @@ select:focus-visible,
   background: rgba(201, 168, 76, 0.06);
 }
 
-/* fullpage.js ナビゲーションドット（トップ用） */
-#fp-nav ul li a span,
-.fp-slidesNav ul li a span {
-  background: rgba(255, 255, 255, 0.65) !important;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
+/* トップページ：CSS scroll-snap（fullpage.js 不使用） */
+.top-page-scroll {
+  -webkit-overflow-scrolling: touch;
 }
-#fp-nav ul li a.active span,
-.fp-slidesNav ul li a.active span {
-  background: #FFD700 !important;
-  border-color: rgba(0, 0, 0, 0.25);
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
-}
-#fp-nav .fp-tooltip {
-  color: #fff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+@media (min-width: 768px) {
+  .top-page-scroll {
+    scroll-snap-type: y mandatory;
+  }
+  .top-page-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
 }
 
 /* スクロール案内のふわふわアニメーション */

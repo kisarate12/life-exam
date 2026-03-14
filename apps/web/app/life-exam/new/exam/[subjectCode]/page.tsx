@@ -112,6 +112,7 @@ export default function LifeExamSubjectPage() {
   }, [subjectCode, isValidCode, router]);
 
   const setAnswer = (questionId: number, points: number) => {
+    setError(null);
     setAnswers((prev) => ({ ...prev, [questionId]: points }));
   };
 
@@ -237,7 +238,11 @@ export default function LifeExamSubjectPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (allAnswered) saveDraftAndNext();
+              if (!allAnswered) {
+                setError("全ての選択肢を選択してください。");
+                return;
+              }
+              saveDraftAndNext();
             }}
             className="space-y-8"
           >
@@ -278,7 +283,7 @@ export default function LifeExamSubjectPage() {
             <div className="flex flex-wrap gap-3 pt-4">
               <button
                 type="submit"
-                disabled={!allAnswered || submitting}
+                disabled={submitting}
                 className="btn-rpg-main"
               >
                 {submitting

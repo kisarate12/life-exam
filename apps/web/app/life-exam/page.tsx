@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Script from "next/script";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import Nav from "../components/Nav";
@@ -23,31 +22,13 @@ const WORLD_CHARS = {
   underworld: ["ゴブリンキング", "農奴", "ハイエナ", "蚊"],
 } as const;
 
-declare global {
-  interface Window {
-    fullpage: (selector: string, options: Record<string, unknown>) => { destroy: (type?: "all") => void };
-  }
-}
-
-/** fullpage.js が body に追加したナビ要素を削除（他ページ遷移後に残るのを防ぐ） */
-function removeFullpageNav() {
-  const nav = document.getElementById("fp-nav") ?? document.querySelector(".fp-nav");
-  nav?.remove();
-}
+const SECTION_IDS = ["section-1", "section-2", "section-3", "section-4", "section-5", "section-6"] as const;
 
 export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [scriptReady, setScriptReady] = useState(false);
-  const fullpageRef = useRef<{ destroy: (type?: "all") => void } | null>(null);
-
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css";
-    document.head.appendChild(link);
-    return () => link.remove();
-  }, []);
+  const [activeSection, setActiveSection] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,48 +42,34 @@ export default function LifeExamPage() {
   }, []);
 
   useEffect(() => {
-    if (!scriptReady || loading) return;
-    const tick = setTimeout(() => {
-      if (!document.getElementById("fullpage")) return;
-      const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
-      fullpageRef.current = window.fullpage("#fullpage", {
-      autoScrolling: !isMobile,
-      scrollHorizontally: false,
-      navigation: true,
-      navigationPosition: "right",
-      navigationTooltips: ["1", "2", "3", "4", "5", "6"],
-      showActiveTooltip: false,
-      scrollingSpeed: 1000,
-      easingcss3: "cubic-bezier(0.645, 0.045, 0.355, 1.000)",
-      responsiveWidth: 768,
-      onLeave: (_origin: { item: HTMLElement }, destination: { item: HTMLElement }) => {
-        const destSection = destination.item;
-        destSection.querySelectorAll(".fade-in-content").forEach((el) => {
-          const htmlEl = el as HTMLElement;
-          htmlEl.style.opacity = "0";
-          htmlEl.style.transform = "translateY(30px)";
-          setTimeout(() => {
-            htmlEl.style.transition = "opacity 0.8s ease, transform 0.8s ease";
-            htmlEl.style.opacity = "1";
-            htmlEl.style.transform = "translateY(0)";
-          }, 300);
-        });
-      },
-    }) as unknown as { destroy: (type?: "all") => void };
-    }, 0);
-    return () => {
-      clearTimeout(tick);
-      if (fullpageRef.current && typeof fullpageRef.current.destroy === "function") {
-        try {
-          fullpageRef.current.destroy("all");
-        } catch {
-          fullpageRef.current.destroy();
+    const container = scrollRef.current;
+    if (!container) return;
+    const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const index = sections.indexOf(entry.target as HTMLElement);
+          if (index >= 0) setActiveSection(index);
+          const el = entry.target as HTMLElement;
+          el.querySelectorAll(".fade-in-content").forEach((child) => {
+            const html = child as HTMLElement;
+            html.style.transition = "opacity 0.8s ease, transform 0.8s ease";
+            html.style.opacity = "1";
+            html.style.transform = "translateY(0)";
+          });
         }
-        fullpageRef.current = null;
-      }
-      removeFullpageNav();
-    };
-  }, [scriptReady, loading]);
+      },
+      { root: container, rootMargin: "-40% 0px", threshold: 0 }
+    );
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, [loading]);
+
+  const scrollToSection = (index: number) => {
+    const el = document.getElementById(SECTION_IDS[index]);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (loading) {
     return (
@@ -118,16 +85,32 @@ export default function LifeExamPage() {
   const startHref = "/life-exam/new";
 
   return (
-    <div className="life-exam-top-page min-h-screen relative z-10">
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js"
-        strategy="afterInteractive"
-        onLoad={() => setScriptReady(true)}
-      />
+    <div className="life-exam-top-page relative z-10 h-screen overflow-hidden">
       <Nav />
-      <div id="fullpage">
+      <div
+        ref={scrollRef}
+        className="top-page-scroll absolute inset-0 top-0 overflow-y-auto overflow-x-hidden bg-white scroll-smooth pt-[73px] md:snap-y md:snap-mandatory"
+      >
+        {/* 右側ナビ（1〜6） */}
+        <div className="top-page-nav fixed right-4 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-2 md:flex" aria-label="セクション">
+          {SECTION_IDS.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => scrollToSection(i)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-black/20 text-xs text-white transition"
+              style={{
+                background: activeSection === i ? "var(--theme-gold-bright)" : "rgba(255,255,255,0.65)",
+                boxShadow: activeSection === i ? "0 0 8px rgba(255,215,0,0.5)" : undefined,
+              }}
+              title={`${i + 1}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
         {/* セクション①：ヒーロー（白背景で文字を見やすく） */}
-        <div className="section bg-white">
+        <section id="section-1" className="top-page-section section min-h-screen flex-shrink-0 snap-start snap-always bg-white">
           <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
             <p
               className="fade-in-content font-bold text-[var(--theme-text)]"
@@ -160,10 +143,10 @@ export default function LifeExamPage() {
               ↓ スクロールして世界を見る
             </p>
           </div>
-        </div>
+        </section>
 
         {/* セクション②：空の世界 */}
-        <div className="section relative">
+        <section id="section-2" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.sky})` }}
@@ -183,10 +166,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* セクション③：海の世界 */}
-        <div className="section relative">
+        <section id="section-3" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.sea})` }}
@@ -206,10 +189,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* セクション④：地上の世界 */}
-        <div className="section relative">
+        <section id="section-4" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.ground})` }}
@@ -229,10 +212,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* セクション⑤：闇の世界 */}
-        <div className="section relative">
+        <section id="section-5" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.underworld})` }}
@@ -252,10 +235,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* セクション⑥：最終CTA（白背景で文字を見やすく） */}
-        <div className="section bg-white">
+        <section id="section-6" className="top-page-section section min-h-screen flex-shrink-0 snap-start snap-always bg-white">
           <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
             <p className="fade-in-content font-bold text-[var(--theme-text)]" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
               あなたはどの世界の住人？
@@ -276,7 +259,7 @@ export default function LifeExamPage() {
               審査を受ける
             </Link>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

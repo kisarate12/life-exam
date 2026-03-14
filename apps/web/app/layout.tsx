@@ -33,8 +33,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} flex min-h-screen flex-col antialiased`}>
-        <div className="min-h-0 flex-1">{children}</div>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} antialiased`}>
+        {children}
         <Footer />
         <FullpageNavCleanup />
         <SpeedInsights />
