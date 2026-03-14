@@ -1,0 +1,14 @@
+feat: タスク管理のCRUDとUIを実装
+
+Backend (api):
+- PATCH /tasks/:id でタイトル・完了状態を更新
+- DELETE /tasks/:id でタスク削除
+- 新規作成時に is_done: false を明示
+- README に tasks テーブル用の Supabase SQL を追記
+
+Frontend (apps/web):
+- タスク一覧で完了トグル・インライン編集・削除を追加
+- API ベースURLを lib/api.ts で集約（NEXT_PUBLIC_API_URL 対応）
+- 共通ナビ (Nav) を追加し全ページで統一
+- トップを「タスク管理」のハブに変更
+- ログイン・/me の文言を日本語化しスタイルを Tailwind で統一

@@ -29,64 +29,75 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen relative z-10">
       <Nav />
-      <main className="mx-auto max-w-md px-4 py-8">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-          ログイン
-        </h1>
-
-        <input
-          className="mt-4 w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-400"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="email@example.com"
-          type="email"
-        />
-        <input
-          className="mt-3 w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-400"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="パスワード"
-          type="password"
-        />
-
-        <div className="mt-4 flex gap-3">
-          <button
-            type="button"
-            onClick={signIn}
-            disabled={!email || !password}
-            className="flex-1 rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
+      <main className="mx-auto max-w-md px-4 py-12">
+        <div className="card-rpg p-8">
+          <h1 className="text-2xl font-bold">
             ログイン
-          </button>
+          </h1>
+
+          <label className="mt-6 block text-sm font-medium text-sub">
+            メールアドレス
+          </label>
+          <input
+            className="mt-1.5 w-full"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@example.com"
+            type="email"
+          />
+
+          <label className="mt-4 block text-sm font-medium text-sub">
+            パスワード
+          </label>
+          <input
+            className="mt-1.5 w-full"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="パスワード"
+            type="password"
+          />
+
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={signIn}
+              disabled={!email || !password}
+              className="btn-rpg-main flex-1"
+            >
+              ログイン
+            </button>
+            <button
+              type="button"
+              onClick={signUp}
+              disabled={!email || !password}
+              className="btn-rpg-sub flex-1"
+            >
+              新規登録
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={signUp}
-            disabled={!email || !password}
-            className="flex-1 rounded-lg border border-zinc-300 px-4 py-2 font-medium text-zinc-900 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            onClick={signOut}
+            className="btn-rpg-sub mt-4 w-full"
           >
-            新規登録
+            ログアウト
           </button>
+
+          {msg && (
+            <p className="mt-5 rounded-lg px-3 py-2 text-sm border border-[var(--rpg-border)] bg-[var(--rpg-bg-section)]/80">
+              {msg}
+            </p>
+          )}
+
+          <p className="mt-6 text-sm text-sub">
+            <a href="/life-exam" className="text-emphasis hover:underline">
+              人生審査へ
+            </a>
+          </p>
         </div>
-
-        <button
-          type="button"
-          onClick={signOut}
-          className="mt-3 w-full rounded-lg border border-zinc-300 px-4 py-2 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
-        >
-          ログアウト
-        </button>
-
-        {msg && (
-          <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{msg}</p>
-        )}
-
-        <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">
-          <a href="/me" className="underline hover:no-underline">セッション確認 /me</a>
-          {" · "}
-          <a href="/tasks" className="underline hover:no-underline">タスク /tasks</a>
-        </p>
       </main>
     </div>
   );

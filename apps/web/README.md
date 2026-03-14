@@ -34,3 +34,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## 人生審査の公開（Vercel + Supabase）
+
+- **リポジトリルートがモノレポの場合**: Vercel でプロジェクトをインポートするとき **Root Directory** に `apps/web` を指定する。
+- **環境変数**: Vercel の Settings → Environment Variables に `.env.example` に記載の 3 つを登録する（`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`）。
+- **Supabase**: 本番の Site URL と Redirect URLs に、デプロイ後の URL（例: `https://<プロジェクト名>.vercel.app`）を設定する。
+- 詳細はプロジェクト内の公開手順プランを参照。
