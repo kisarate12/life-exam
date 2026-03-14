@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} min-h-screen overflow-auto antialiased`}>
         {children}
         <Footer />
         <FullpageNavCleanup />

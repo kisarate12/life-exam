@@ -27,7 +27,6 @@ const SECTION_IDS = ["section-1", "section-2", "section-3", "section-4", "sectio
 export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,8 +48,6 @@ export default function LifeExamPage() {
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          const index = sections.indexOf(entry.target as HTMLElement);
-          if (index >= 0) setActiveSection(index);
           const el = entry.target as HTMLElement;
           el.querySelectorAll(".fade-in-content").forEach((child) => {
             const html = child as HTMLElement;
@@ -65,11 +62,6 @@ export default function LifeExamPage() {
     sections.forEach((s) => observer.observe(s));
     return () => observer.disconnect();
   }, [loading]);
-
-  const scrollToSection = (index: number) => {
-    const el = document.getElementById(SECTION_IDS[index]);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   if (loading) {
     return (
@@ -91,24 +83,6 @@ export default function LifeExamPage() {
         ref={scrollRef}
         className="top-page-scroll absolute inset-0 top-0 overflow-y-auto overflow-x-hidden bg-white scroll-smooth pt-[73px] md:snap-y md:snap-mandatory"
       >
-        {/* 右側ナビ（1〜6） */}
-        <div className="top-page-nav fixed right-4 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-2 md:flex" aria-label="セクション">
-          {SECTION_IDS.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => scrollToSection(i)}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-black/20 text-xs text-white transition"
-              style={{
-                background: activeSection === i ? "var(--theme-gold-bright)" : "rgba(255,255,255,0.65)",
-                boxShadow: activeSection === i ? "0 0 8px rgba(255,215,0,0.5)" : undefined,
-              }}
-              title={`${i + 1}`}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
         {/* セクション①：ヒーロー（白背景で文字を見やすく） */}
         <section id="section-1" className="top-page-section section min-h-screen flex-shrink-0 snap-start snap-always bg-white">
           <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
