@@ -363,15 +363,15 @@ select:focus-visible,
 }
 
 /* トップページ：body のみスクロールで scroll-snap（二重スクロールバー防止） */
+/* proximity にするとフッターまで下げたときにスナップで少し上に戻るのを防げる */
 html.life-exam-top-scroll,
 html.life-exam-top-scroll body {
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y proximity;
   scroll-behavior: smooth;
 }
 @media (min-width: 768px) {
   html.life-exam-top-scroll .life-exam-top-page section {
     scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
 }
 

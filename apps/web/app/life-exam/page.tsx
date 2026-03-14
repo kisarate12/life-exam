@@ -39,8 +39,24 @@ export default function LifeExamPage() {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.add("life-exam-top-scroll");
-    return () => document.documentElement.classList.remove("life-exam-top-scroll");
+    const el = document.documentElement;
+    el.classList.add("life-exam-top-scroll");
+    const footer = document.getElementById("site-footer");
+    if (!footer) return () => el.classList.remove("life-exam-top-scroll");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting) el.classList.remove("life-exam-top-scroll");
+        else el.classList.add("life-exam-top-scroll");
+      },
+      { root: null, threshold: 0, rootMargin: "0px 0px 0px 0px" }
+    );
+    observer.observe(footer);
+    return () => {
+      observer.disconnect();
+      el.classList.remove("life-exam-top-scroll");
+    };
   }, []);
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer
+      id="site-footer"
       className="mt-auto border-t-2 py-6"
       style={{ background: "var(--theme-accent-navy)", borderColor: "var(--theme-border-emphasis)" }}
     >
