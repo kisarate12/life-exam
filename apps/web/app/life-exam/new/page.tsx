@@ -33,10 +33,21 @@ export default function LifeExamNewPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+        if (anonError) {
+          setUser(null);
+          setLoading(false);
+          router.replace("/life-exam");
+          return;
+        }
+        session = anonData?.session ?? null;
+      }
       if (!session?.user) {
         setUser(null);
         setLoading(false);
+        router.replace("/life-exam");
         return;
       }
       setUser(session.user);
@@ -53,7 +64,7 @@ export default function LifeExamNewPage() {
       if (profile?.prefecture) setPrefecture(profile.prefecture);
       setLoading(false);
     })();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -67,7 +78,6 @@ export default function LifeExamNewPage() {
   }
 
   if (!user) {
-    router.replace("/login");
     return null;
   }
 

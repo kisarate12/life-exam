@@ -102,7 +102,7 @@ export default function LifeExamPage() {
     );
   }
 
-  const startHref = user ? "/life-exam/new" : "/login";
+  const startHref = "/life-exam/new";
 
   return (
     <div className="life-exam-top-page min-h-screen relative z-10">

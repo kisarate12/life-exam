@@ -39,7 +39,18 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## 人生審査の公開（Vercel + Supabase）
 
-- **リポジトリルートがモノレポの場合**: Vercel でプロジェクトをインポートするとき **Root Directory** に `apps/web` を指定する。
-- **環境変数**: Vercel の Settings → Environment Variables に `.env.example` に記載の 3 つを登録する（`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`）。
+### 必須: Root Directory の設定（デプロイ失敗時はここを確認）
+
+このリポジトリはモノレポです。**Vercel で必ず次を設定してください。**
+
+1. Vercel ダッシュボード → 対象プロジェクト → **Settings** → **General**
+2. **Root Directory** で **Edit** をクリック
+3. `apps/web` を指定して **Save**
+
+これが未設定だと、リポジトリルートに `package.json` がなくビルドに失敗します。
+
+### その他の設定
+
+- **環境変数**: Settings → Environment Variables に `.env.example` に記載の 3 つを登録（`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`）。
 - **Supabase**: 本番の Site URL と Redirect URLs に、デプロイ後の URL（例: `https://<プロジェクト名>.vercel.app`）を設定する。
 - 詳細はプロジェクト内の公開手順プランを参照。

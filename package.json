@@ -1,0 +1,9 @@
+{
+  "name": "life-exam-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "cd apps/web && npm ci && npm run build",
+    "start": "cd apps/web && npm run start",
+    "dev": "cd apps/web && npm run dev"
+  }
+}

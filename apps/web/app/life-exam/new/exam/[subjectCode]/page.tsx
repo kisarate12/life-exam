@@ -69,7 +69,7 @@ export default function LifeExamSubjectPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        router.replace("/login");
+        router.replace("/life-exam/new");
         return;
       }
       setUser(session.user);
