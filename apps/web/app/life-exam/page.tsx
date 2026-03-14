@@ -25,8 +25,14 @@ const WORLD_CHARS = {
 
 declare global {
   interface Window {
-    fullpage: (selector: string, options: Record<string, unknown>) => { destroy: () => void };
+    fullpage: (selector: string, options: Record<string, unknown>) => { destroy: (type?: "all") => void };
   }
+}
+
+/** fullpage.js が body に追加したナビ要素を削除（他ページ遷移後に残るのを防ぐ） */
+function removeFullpageNav() {
+  const nav = document.getElementById("fp-nav") ?? document.querySelector(".fp-nav");
+  nav?.remove();
 }
 
 export default function LifeExamPage() {
@@ -86,8 +92,15 @@ export default function LifeExamPage() {
     }, 0);
     return () => {
       clearTimeout(tick);
-      if (fullpageRef.current && typeof fullpageRef.current.destroy === "function") fullpageRef.current.destroy();
-      fullpageRef.current = null;
+      if (fullpageRef.current && typeof fullpageRef.current.destroy === "function") {
+        try {
+          fullpageRef.current.destroy("all");
+        } catch {
+          fullpageRef.current.destroy();
+        }
+        fullpageRef.current = null;
+      }
+      removeFullpageNav();
     };
   }, [scriptReady, loading]);
 

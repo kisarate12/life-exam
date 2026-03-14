@@ -32,6 +32,12 @@ export default function LifeExamNewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // トップページの fullpage.js ナビが他ページに残らないよう削除
+  useEffect(() => {
+    const nav = document.getElementById("fp-nav") ?? document.querySelector(".fp-nav");
+    nav?.remove();
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
