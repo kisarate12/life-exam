@@ -39,7 +39,7 @@ export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [scriptReady, setScriptReady] = useState(false);
-  const fullpageRef = useRef<{ destroy: () => void } | null>(null);
+  const fullpageRef = useRef<{ destroy: (type?: "all") => void } | null>(null);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -88,7 +88,7 @@ export default function LifeExamPage() {
           }, 300);
         });
       },
-    }) as unknown as { destroy: () => void };
+    }) as unknown as { destroy: (type?: "all") => void };
     }, 0);
     return () => {
       clearTimeout(tick);

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Serif_JP } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { FullpageNavCleanup } from "./components/FullpageNavCleanup";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +34,8 @@ export default function RootLayout({
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} antialiased`}>
         {children}
+        <FullpageNavCleanup />
+        <SpeedInsights />
       </body>
     </html>
   );
