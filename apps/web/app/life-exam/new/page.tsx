@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import {
@@ -25,6 +25,7 @@ export default function LifeExamNewPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [age, setAge] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [prefecture, setPrefecture] = useState<string>("");
@@ -32,30 +33,35 @@ export default function LifeExamNewPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       let { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+        if (cancelled) return;
         if (anonError) {
+          setAuthError(anonError.message || "匿名認証に失敗しました。");
           setUser(null);
           setLoading(false);
-          router.replace("/life-exam");
           return;
         }
         session = anonData?.session ?? null;
       }
+      if (cancelled) return;
       if (!session?.user) {
+        setAuthError("セッションを開始できませんでした。");
         setUser(null);
         setLoading(false);
-        router.replace("/life-exam");
         return;
       }
       setUser(session.user);
+      setAuthError(null);
       const { data: profile } = await supabase
         .from("life_exam_profiles")
         .select("birth_year, gender, prefecture")
         .eq("user_id", session.user.id)
         .single();
+      if (cancelled) return;
       if (profile?.birth_year) {
         const a = getAgeFromBirthYear(profile.birth_year);
         if (a >= AGE_SELECT_MIN && a <= AGE_SELECT_MAX) setAge(String(a));
@@ -64,7 +70,8 @@ export default function LifeExamNewPage() {
       if (profile?.prefecture) setPrefecture(profile.prefecture);
       setLoading(false);
     })();
-  }, [router]);
+    return () => { cancelled = true; };
+  }, []);
 
   if (loading) {
     return (
@@ -72,6 +79,26 @@ export default function LifeExamNewPage() {
         <Nav />
         <main className="mx-auto max-w-2xl px-4 py-20">
           <p className="text-sub">読み込み中...</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="min-h-screen relative z-10">
+        <Nav />
+        <main className="mx-auto max-w-2xl px-4 py-20">
+          <div className="card-rpg p-8">
+            <p className="text-[var(--theme-text)] font-medium">診断を開始できませんでした</p>
+            <p className="mt-2 text-sm text-[var(--theme-text-sub)]">{authError}</p>
+            <p className="mt-4 text-sm text-[var(--theme-text-sub)]">
+              Supabase の Authentication で「Allow new users to sign up」と「Allow anonymous sign-ins」の両方を有効にしてください。
+            </p>
+            <Link href="/life-exam" className="btn-rpg-main mt-6 inline-block">
+              トップへ戻る
+            </Link>
+          </div>
         </main>
       </div>
     );
@@ -95,25 +122,29 @@ export default function LifeExamNewPage() {
     }
 
     setSubmitting(true);
-    const birthYear = getBirthYearFromAge(ageNum);
-    const ageBand = getAgeBandFromBirthYear(birthYear);
-    const { error: err } = await supabase.from("life_exam_profiles").upsert(
-      {
-        user_id: user.id,
-        birth_year: birthYear,
-        age_band: ageBand,
-        gender: gender || null,
-        prefecture: prefecture || null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-    setSubmitting(false);
-    if (err) {
-      setError(err.message);
-      return;
+    setError(null);
+    try {
+      const birthYear = getBirthYearFromAge(ageNum);
+      const ageBand = getAgeBandFromBirthYear(birthYear);
+      const { error: err } = await supabase.from("life_exam_profiles").upsert(
+        {
+          user_id: user.id,
+          birth_year: birthYear,
+          age_band: ageBand,
+          gender: gender || null,
+          prefecture: prefecture || null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
+      if (err) {
+        setError(err.message);
+        return;
+      }
+      router.push(`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[0]}`);
+    } finally {
+      setSubmitting(false);
     }
-    router.push(`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[0]}`);
   };
 
   const inputClass = "mt-2 w-full";

@@ -51,6 +51,15 @@ export type { QuestDifficultyKey } from "./questConstants";
 
 export { SUBJECT_DISPLAY_SHORT } from "./ver1-concepts";
 
+export {
+  WORLD_SHORT,
+  WORLD_LABEL_DISPLAY,
+  WORLD_DISPLAY,
+  getWorldLabelDisplay,
+  getWorldDisplay,
+  getWorldShort,
+} from "./worldDisplay";
+
 export type { AnswersMap, SubjectScoresMap, QuestionMaxMap } from "./scoring";
 export {
   computeSubjectScores,

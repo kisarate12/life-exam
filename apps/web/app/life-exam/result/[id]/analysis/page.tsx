@@ -149,7 +149,7 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     if (!id) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
     (async () => {

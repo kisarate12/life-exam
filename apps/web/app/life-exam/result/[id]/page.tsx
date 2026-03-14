@@ -5,14 +5,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LifeExamAttempt, LifeExamProfile, LifeExamScore, LifeExamSubject, LifeExamAnswer, LifeExamQuestion } from "@/lib/life-exam/types";
-import { getJudgement, getRankFromDeviation, formatDeviation } from "@/lib/life-exam/judgement";
+import { getJudgement, getRankFromDeviation } from "@/lib/life-exam/judgement";
 import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-exam/constants";
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import { EXAM_V2_SUBJECT_MAX_POINTS } from "@/lib/life-exam/examV2Questions";
 import type { SubjectCode } from "@/lib/life-exam/examV2Questions";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
-import { QUEST_DIFFICULTY, getQuestDifficulty } from "@/lib/life-exam/questConstants";
+import { getQuestDifficulty } from "@/lib/life-exam/questConstants";
+import { getWorldLabelDisplay, getWorldDisplay, getWorldShort } from "@/lib/life-exam/worldDisplay";
 import { runDiagnosis, lifeStatsFromExamRanks, getEvolutionMapInfo, SUMMIT_MESSAGE } from "@/lib/life-diagnosis";
 import type { Rank } from "@/lib/life-diagnosis";
 import Nav from "../../../components/Nav";
@@ -27,14 +28,6 @@ export interface RankingEntry {
   characterImage: string;
   attemptId?: string;
 }
-/** 世界ラベル → 短縮名（保存・フィルタ用） */
-const WORLD_SHORT: Record<string, string> = {
-  "空の世界の住人": "空",
-  "海の世界の住人": "海",
-  "地上の世界の住人": "地上",
-  "やみのせかいの住人": "冥界",
-};
-
 const STAT_ORDER_ANALYSIS = ["資産", "収入", "時間", "人間関係", "健康"] as const;
 
 /** ステータスコメント（全ランクS〜F。C以下は一言評価のみ） */
@@ -479,7 +472,7 @@ export default function LifeExamResultPage() {
 
   useEffect(() => {
     if (!id) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
     (async () => {
@@ -784,15 +777,9 @@ export default function LifeExamResultPage() {
   });
   const questItemsForAnalysis = rowsForAnalysis.filter((r) => ["C", "D", "E", "F"].includes(r.rank));
 
-  /** 世界戦闘力ランキング用：世界表示名とアイコン（characterResult.world から判定） */
-  const WORLD_DISPLAY: Record<string, { name: string; icon: string }> = {
-    "空の世界の住人": { name: "空の世界", icon: "☀️" },
-    "海の世界の住人": { name: "海の世界", icon: "🌊" },
-    "地上の世界の住人": { name: "地上の世界", icon: "🌿" },
-    "やみのせかいの住人": { name: "冥界", icon: "💀" },
-  };
-  const worldDisplay = WORLD_DISPLAY[characterResult.world] ?? { name: characterResult.world, icon: "🌍" };
-  const worldShort = WORLD_SHORT[characterResult.world] ?? "?";
+  const worldDisplay = getWorldDisplay(characterResult.world);
+  const worldShort = getWorldShort(characterResult.world);
+  const worldLabelDisplay = getWorldLabelDisplay(characterResult.world);
 
   /** ランキング表示用（RPC結果をそのまま使用） */
   const globalRankDisplay = rankingStats && rankingStats.globalTotal > 0
@@ -854,7 +841,7 @@ export default function LifeExamResultPage() {
           <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 120px)" }}>
             <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8E0D0] bg-white p-8 shadow-lg">
               <div className="text-center rounded-xl border border-[#E8E0D0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #C9A84C" }}>
-                <span className="text-sm font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{characterResult.world}</span>
+                <span className="text-sm font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
               </div>
               <div className="flex justify-center" style={{ marginBottom: 16 }}>
                 <div className="flex max-h-[240px] max-w-[240px] items-center justify-center">
@@ -906,7 +893,7 @@ export default function LifeExamResultPage() {
               }}
             >
               <span className="text-sm font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                {characterResult.world}
+                {worldLabelDisplay}
               </span>
             </div>
             {/* キャラクター画像（最大240px・ドロップシャドウ） */}
@@ -1176,7 +1163,7 @@ export default function LifeExamResultPage() {
                   </div>
                   <div>
                     <p className="font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{evolutionMapInfo.target.name}</p>
-                    <p className="text-sm text-[#6B7A99]">{evolutionMapInfo.target.world}</p>
+                    <p className="text-sm text-[#6B7A99]">{getWorldLabelDisplay(evolutionMapInfo.target.world)}</p>
                   </div>
                 </div>
               </div>
@@ -1228,7 +1215,7 @@ export default function LifeExamResultPage() {
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{characterResult.name}</p>
-                  <p className="text-sm text-[#6B7A99]">{characterResult.world}</p>
+                  <p className="text-sm text-[#6B7A99]">{worldLabelDisplay}</p>
                 </div>
               </div>
             </div>

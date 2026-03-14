@@ -64,7 +64,7 @@ export default function LifeExamPage() {
       scrollHorizontally: false,
       navigation: true,
       navigationPosition: "right",
-      navigationTooltips: [],
+      navigationTooltips: ["1", "2", "3", "4", "5", "6"],
       showActiveTooltip: false,
       scrollingSpeed: 1000,
       easingcss3: "cubic-bezier(0.645, 0.045, 0.355, 1.000)",

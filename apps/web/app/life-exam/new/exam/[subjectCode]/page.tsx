@@ -61,7 +61,7 @@ export default function LifeExamSubjectPage() {
 
   useEffect(() => {
     if (!isValidCode) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
     (async () => {
