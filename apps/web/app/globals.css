@@ -398,3 +398,8 @@ select:focus-visible,
   color: #ffffff !important;
   font-weight: 700 !important;
 }
+
+/* Nav ロゴの発色補正 */
+.nav-logo-img {
+  filter: saturate(1.25) contrast(1.1) brightness(1.05);
+}

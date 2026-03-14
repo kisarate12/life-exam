@@ -27,11 +27,10 @@ export default function Nav() {
         >
           <img
             src="/top-worlds/logo-scale.png"
-            alt="人生審査ロゴ"
+            alt=""
             width={32}
             height={32}
-            className="h-8 w-8 shrink-0 object-contain"
-            style={{ filter: "saturate(1.25) contrast(1.1) brightness(1.05)" }}
+            className="nav-logo-img h-8 w-8 shrink-0 object-contain"
           />
           人生審査
         </Link>
