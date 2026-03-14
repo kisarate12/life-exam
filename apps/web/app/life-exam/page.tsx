@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
@@ -27,8 +27,6 @@ const SECTION_IDS = ["section-1", "section-2", "section-3", "section-4", "sectio
 export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -41,9 +39,14 @@ export default function LifeExamPage() {
   }, []);
 
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
+    document.documentElement.classList.add("life-exam-top-scroll");
+    return () => document.documentElement.classList.remove("life-exam-top-scroll");
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
     const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    if (sections.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -57,7 +60,7 @@ export default function LifeExamPage() {
           });
         }
       },
-      { root: container, rootMargin: "-40% 0px", threshold: 0 }
+      { root: null, rootMargin: "-20% 0px", threshold: 0 }
     );
     sections.forEach((s) => observer.observe(s));
     return () => observer.disconnect();
@@ -77,14 +80,11 @@ export default function LifeExamPage() {
   const startHref = "/life-exam/new";
 
   return (
-    <div className="life-exam-top-page relative z-10 h-screen overflow-hidden">
+    <div className="life-exam-top-page relative z-10 bg-white">
       <Nav />
-      <div
-        ref={scrollRef}
-        className="top-page-scroll absolute inset-0 top-0 overflow-y-auto overflow-x-hidden bg-white scroll-smooth pt-[73px] md:snap-y md:snap-mandatory"
-      >
-        {/* セクション①：ヒーロー（白背景で文字を見やすく） */}
-        <section id="section-1" className="top-page-section section min-h-screen flex-shrink-0 snap-start snap-always bg-white">
+      {/* 1本の長いページで body のみスクロール → スクロールバー1本 */}
+      {/* セクション①：ヒーロー（白背景で文字を見やすく） */}
+      <section id="section-1" className="top-page-section section min-h-screen bg-white pt-[73px]">
           <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
             <p
               className="fade-in-content font-bold text-[var(--theme-text)]"
@@ -117,10 +117,10 @@ export default function LifeExamPage() {
               ↓ スクロールして世界を見る
             </p>
           </div>
-        </section>
+      </section>
 
-        {/* セクション②：空の世界 */}
-        <section id="section-2" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
+      {/* セクション②：空の世界 */}
+      <section id="section-2" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.sky})` }}
@@ -140,10 +140,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </section>
+      </section>
 
-        {/* セクション③：海の世界 */}
-        <section id="section-3" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
+      {/* セクション③：海の世界 */}
+      <section id="section-3" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.sea})` }}
@@ -163,10 +163,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </section>
+      </section>
 
-        {/* セクション④：地上の世界 */}
-        <section id="section-4" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
+      {/* セクション④：地上の世界 */}
+      <section id="section-4" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.ground})` }}
@@ -186,10 +186,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </section>
+      </section>
 
-        {/* セクション⑤：闇の世界 */}
-        <section id="section-5" className="top-page-section section relative min-h-screen flex-shrink-0 snap-start snap-always">
+      {/* セクション⑤：闇の世界 */}
+      <section id="section-5" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${WORLD_BG.underworld})` }}
@@ -209,10 +209,10 @@ export default function LifeExamPage() {
               ))}
             </div>
           </div>
-        </section>
+      </section>
 
-        {/* セクション⑥：最終CTA（白背景で文字を見やすく） */}
-        <section id="section-6" className="top-page-section section min-h-screen flex-shrink-0 snap-start snap-always bg-white">
+      {/* セクション⑥：最終CTA（白背景で文字を見やすく） */}
+      <section id="section-6" className="top-page-section section min-h-screen bg-white">
           <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
             <p className="fade-in-content font-bold text-[var(--theme-text)]" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
               あなたはどの世界の住人？
@@ -233,8 +233,7 @@ export default function LifeExamPage() {
               審査を受ける
             </Link>
           </div>
-        </section>
-      </div>
+      </section>
     </div>
   );
 }

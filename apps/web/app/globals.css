@@ -362,15 +362,14 @@ select:focus-visible,
   background: rgba(201, 168, 76, 0.06);
 }
 
-/* トップページ：CSS scroll-snap（fullpage.js 不使用） */
-.top-page-scroll {
-  -webkit-overflow-scrolling: touch;
+/* トップページ：body のみスクロールで scroll-snap（二重スクロールバー防止） */
+html.life-exam-top-scroll,
+html.life-exam-top-scroll body {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
 }
 @media (min-width: 768px) {
-  .top-page-scroll {
-    scroll-snap-type: y mandatory;
-  }
-  .top-page-section {
+  html.life-exam-top-scroll .life-exam-top-page section {
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
