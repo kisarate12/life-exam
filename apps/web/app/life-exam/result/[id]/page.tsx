@@ -564,11 +564,38 @@ export default function LifeExamResultPage() {
     })();
   }, [id]);
 
-  /** ランキング順位・人数をRPCで取得（全件集計・件数制限なし） */
+  /** ランキング用に今回の受験を登録してから順位取得（同世界ランキングが常に1位になるのを防ぐ） */
   useEffect(() => {
-    if (!attempt) return;
+    if (!id || !attempt || !scores.length || !subjects.length) return;
+    const scoreBySubject: Record<number, number> = {};
+    scores.forEach((row) => {
+      scoreBySubject[row.subject_id] = Number(row.score);
+    });
+    const rankBySubjectId: Record<number, Rank> = {};
+    subjects.forEach((s) => {
+      const score = scoreBySubject[s.id] ?? 50;
+      const dev = subjectDeviationFromScore(score);
+      rankBySubjectId[s.id] = getRankFromDeviation(dev) as Rank;
+    });
+    const stats = lifeStatsFromExamRanks(rankBySubjectId);
+    const characterResult = runDiagnosis(stats);
+    const worldShort = getWorldShort(characterResult.world);
     const totalScoreDisplay = Math.round((Number(attempt.total_score) / 500) * 900);
+
     (async () => {
+      await supabase.from("life_exam_ranking_entries").upsert(
+        {
+          attempt_id: id,
+          user_id: attempt.user_id,
+          nickname: "名無しの冒険者",
+          world: worldShort,
+          character_name: characterResult.name,
+          character_image: characterResult.imagePath,
+          total_score: totalScoreDisplay,
+        },
+        { onConflict: "attempt_id" }
+      );
+
       const { data, error: err } = await supabase.rpc("get_life_exam_ranking_position", {
         p_total_score: totalScoreDisplay,
       });
@@ -584,7 +611,7 @@ export default function LifeExamResultPage() {
         worldStats: raw.world_stats ?? {},
       });
     })();
-  }, [attempt]);
+  }, [attempt, scores, subjects, id]);
 
   if (loading) {
     return (

@@ -280,11 +280,21 @@ export default function LifeExamSubjectPage() {
 
             {error && <p className="text-sm text-[var(--rpg-accent-red)]">{error}</p>}
 
-            <div className="flex flex-wrap gap-3 pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
+              {currentIndex > 0 ? (
+                <Link
+                  href={`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[currentIndex - 1]}`}
+                  className="btn-rpg-sub"
+                >
+                  前の科目へ
+                </Link>
+              ) : (
+                <span />
+              )}
               <button
                 type="submit"
                 disabled={submitting}
-                className="btn-rpg-main"
+                className="btn-rpg-main ml-auto"
               >
                 {submitting
                   ? "送信中..."
@@ -292,14 +302,6 @@ export default function LifeExamSubjectPage() {
                     ? "提出して採点する"
                     : "次へ"}
               </button>
-              {currentIndex > 0 && (
-                <Link
-                  href={`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[currentIndex - 1]}`}
-                  className="btn-rpg-sub"
-                >
-                  前の科目へ
-                </Link>
-              )}
             </div>
           </form>
         </div>
