@@ -24,9 +24,31 @@ const WORLD_CHARS = {
 
 const SECTION_IDS = ["section-1", "section-2", "section-3", "section-4", "section-5", "section-6"] as const;
 
+/** 表示されたセクションの背景のみ読み込む（初期負荷軽減） */
+const WORLD_SECTION_IDS = ["section-2", "section-3", "section-4", "section-5"] as const;
+
 export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [visibleBgs, setVisibleBgs] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const sections = WORLD_SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    if (sections.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const id = (entry.target as HTMLElement).id;
+          setVisibleBgs((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+        }
+      },
+      { root: null, rootMargin: "200px 0px", threshold: 0 }
+    );
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, [loading]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -145,7 +167,7 @@ export default function LifeExamPage() {
       <section id="section-2" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${WORLD_BG.sky})` }}
+            style={{ backgroundImage: visibleBgs["section-2"] ? `url(${WORLD_BG.sky})` : undefined }}
           />
           <div className="absolute inset-0 bg-black/55" />
           <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
@@ -157,7 +179,7 @@ export default function LifeExamPage() {
             <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
               {WORLD_CHARS.sky.map((name) => (
                 <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" />
+                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
                 </div>
               ))}
             </div>
@@ -168,7 +190,7 @@ export default function LifeExamPage() {
       <section id="section-3" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${WORLD_BG.sea})` }}
+            style={{ backgroundImage: visibleBgs["section-3"] ? `url(${WORLD_BG.sea})` : undefined }}
           />
           <div className="absolute inset-0 bg-[rgba(0,15,40,0.6)]" />
           <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
@@ -180,7 +202,7 @@ export default function LifeExamPage() {
             <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
               {WORLD_CHARS.sea.map((name) => (
                 <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" />
+                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
                 </div>
               ))}
             </div>
@@ -191,7 +213,7 @@ export default function LifeExamPage() {
       <section id="section-4" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${WORLD_BG.ground})` }}
+            style={{ backgroundImage: visibleBgs["section-4"] ? `url(${WORLD_BG.ground})` : undefined }}
           />
           <div className="absolute inset-0 bg-[rgba(0,25,0,0.58)]" />
           <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
@@ -203,7 +225,7 @@ export default function LifeExamPage() {
             <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
               {WORLD_CHARS.ground.map((name) => (
                 <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" />
+                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
                 </div>
               ))}
             </div>
