@@ -1,5 +1,5 @@
 /**
- * 人生審査（Life Exam）lib の barrel
+ * 人生診断（Life Exam）lib の barrel
  * 型・定数・スコア・判定・クエスト定数を一括 re-export
  */
 

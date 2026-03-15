@@ -3,8 +3,8 @@ import Link from "next/link";
 import Nav from "../components/Nav";
 
 export const metadata: Metadata = {
-  title: "プライバシーポリシー | 人生審査",
-  description: "人生審査のプライバシーポリシーです。",
+  title: "プライバシーポリシー | 人生診断",
+  description: "人生診断のプライバシーポリシーです。",
 };
 
 export default function PrivacyPage() {
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-lg font-semibold">1. 事業者</h2>
               <p className="mt-2 text-sm leading-relaxed">
-                本サービス「人生審査」の提供者は、当社（運営者）です。お問い合わせは公式LINEよりお願いいたします。
+                本サービス「人生診断」の提供者は、当社（運営者）です。お問い合わせは公式LINEよりお願いいたします。
               </p>
             </div>
 

@@ -141,7 +141,7 @@ export default function LifeExamPage() {
                 boxShadow: "0 4px 20px rgba(201,168,76,0.35)",
               }}
             >
-              審査を受ける
+              診断を受ける
             </Link>
             <p
               className="animate-bounce-soft absolute bottom-10 right-6 text-[var(--theme-text-sub)] md:right-10"
@@ -263,7 +263,7 @@ export default function LifeExamPage() {
                 boxShadow: "0 4px 20px rgba(201,168,76,0.35)",
               }}
             >
-              審査を受ける
+              診断を受ける
             </Link>
           </div>
       </section>

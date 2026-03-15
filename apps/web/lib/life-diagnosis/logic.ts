@@ -249,7 +249,7 @@ export function runDiagnosis(stats: LifeStats): CharacterResult {
 }
 
 /**
- * 人生審査の科目別ランクから LifeStats を組み立てる
+ * 人生診断の科目別ランクから LifeStats を組み立てる
  * subject_id: 1=資産, 2=収入, 3=人間関係, 4=時間, 5=健康
  */
 export function lifeStatsFromExamRanks(rankBySubjectId: Record<number, Rank>): LifeStats {

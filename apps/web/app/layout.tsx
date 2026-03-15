@@ -21,7 +21,7 @@ const notoSerifJP = Noto_Serif_JP({
   variable: "--font-noto-serif-jp",
 });
 
-const siteTitle = "人生審査";
+const siteTitle = "人生診断";
 const siteDescription = "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
 const ogImagePath = "/og.png";
 

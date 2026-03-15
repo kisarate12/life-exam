@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ---
 
-## 人生審査の公開（Vercel + Supabase）
+## 人生診断の公開（Vercel + Supabase）
 
 ### 必須: Root Directory の設定（デプロイ失敗時はここを確認）
 

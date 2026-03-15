@@ -32,7 +32,7 @@ export default function Nav() {
             height={32}
             className="nav-logo-img h-8 w-8 shrink-0 object-contain"
           />
-          人生審査
+          人生診断
         </Link>
         <div className="flex items-center gap-3">
           <Link href="/life-exam" className={`rounded-lg px-3 py-1.5 ${linkClass("/life-exam")}`}>

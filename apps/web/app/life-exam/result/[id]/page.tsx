@@ -830,7 +830,7 @@ export default function LifeExamResultPage() {
   const shareModalCardFooter = (
     <div className="mt-4 border-t border-[#E8E0D0] pt-3 text-center">
       <p className="text-[#B8966A]" style={{ fontSize: 11 }}>{resultUrl}</p>
-      <p className="mt-1 text-[#B8966A]" style={{ fontSize: 11 }}>#人生審査</p>
+      <p className="mt-1 text-[#B8966A]" style={{ fontSize: 11 }}>#人生診断</p>
     </div>
   );
   const handleShareInstagram = () => {
@@ -841,8 +841,8 @@ export default function LifeExamResultPage() {
     alert("スクショを保存してTikTokに投稿してね！");
     window.open("tiktok://", "_blank");
   };
-  const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`私は「${characterResult.name}」でした！\n世界：${worldDisplay.name}\n総合点：${totalScoreDisplay}点\n#人生審査\n${resultUrl}`)}`;
-  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(resultUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！#人生審査`)}`;
+  const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`私は「${characterResult.name}」でした！\n世界：${worldDisplay.name}\n総合点：${totalScoreDisplay}点\n#人生診断\n${resultUrl}`)}`;
+  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(resultUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！#人生診断`)}`;
 
   return (
     <div className="min-h-screen relative z-10">

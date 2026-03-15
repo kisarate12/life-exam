@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 /**
- * 人生審査の結果をメール送信するAPI（MVP: スタブ可、後でResend/Supabase等に接続）
+ * 人生診断の結果をメール送信するAPI（MVP: スタブ可、後でResend/Supabase等に接続）
  */
 export async function POST(request: Request) {
   try {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           from: process.env.RESEND_FROM ?? "onboarding@resend.dev",
           to: [to],
-          subject: subject ?? "【人生審査】診断結果",
+          subject: subject ?? "【人生診断】診断結果",
           text: body ?? "",
         }),
       });
