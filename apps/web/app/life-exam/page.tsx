@@ -114,6 +114,17 @@ export default function LifeExamPage() {
             >
               今すぐ診断して、あなたの人生ランクを確かめよう
             </p>
+            <div
+              className="fade-in-content mx-auto mt-8 max-w-lg text-left text-[var(--theme-text)]"
+              style={{ fontSize: 15, lineHeight: 1.8, opacity: 0.9 }}
+            >
+              <p className="font-semibold text-[var(--theme-accent-navy)]">人生審査とは</p>
+              <p className="mt-2">
+                資産・収入・人間関係・時間・健康の5つのステータスから、あなたの「人生ランク」を診断するサービスです。
+                約5分の質問に答えると、あなたにぴったりのキャラクターと世界（空・海・地上・闇）が導き出されます。
+                同世代や全世界との比較で自分の立ち位置がわかり、クエストや進化ロードマップで次の一歩のヒントも得られます。
+              </p>
+            </div>
             <Link
               href={startHref}
               className="fade-in-content mt-10 rounded-xl font-bold text-white shadow-lg transition hover:opacity-95 hover:-translate-y-0.5"
