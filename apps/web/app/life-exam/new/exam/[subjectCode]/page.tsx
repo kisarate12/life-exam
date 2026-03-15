@@ -280,21 +280,11 @@ export default function LifeExamSubjectPage() {
 
             {error && <p className="text-sm text-[var(--rpg-accent-red)]">{error}</p>}
 
-            <div className="flex flex-col-reverse flex-wrap items-stretch gap-3 pt-4 md:flex-row md:items-center md:justify-between">
-              {currentIndex > 0 ? (
-                <Link
-                  href={`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[currentIndex - 1]}`}
-                  className="btn-rpg-sub order-2 md:order-1"
-                >
-                  前の科目へ
-                </Link>
-              ) : (
-                <span className="order-2 md:order-1 hidden md:block" aria-hidden />
-              )}
+            <div className="flex flex-col flex-wrap items-stretch gap-3 pt-4 md:flex-row md:items-center md:justify-between">
               <button
                 type="submit"
                 disabled={submitting}
-                className="btn-rpg-main order-1 md:order-2 md:ml-auto whitespace-nowrap"
+                className="btn-rpg-main order-1 w-full whitespace-nowrap md:order-2 md:ml-auto md:w-auto"
               >
                 {submitting
                   ? "送信中..."
@@ -302,6 +292,16 @@ export default function LifeExamSubjectPage() {
                     ? "提出して採点する"
                     : "次へ"}
               </button>
+              {currentIndex > 0 ? (
+                <Link
+                  href={`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[currentIndex - 1]}`}
+                  className="btn-rpg-sub order-2 w-full md:order-1 md:w-auto"
+                >
+                  前の科目へ
+                </Link>
+              ) : (
+                <span className="order-2 hidden md:order-1 md:block" aria-hidden />
+              )}
             </div>
           </form>
         </div>

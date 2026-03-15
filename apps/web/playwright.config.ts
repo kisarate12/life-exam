@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 /** 未指定時は本番URL（ローカルはSupabase対象外のためE2Eは本番向け） */
 const baseURL =
-  process.env.PLAYWRIGHT_BASE_URL ?? "https://kisarate12-life-exam-wkot.vercel.app";
+  process.env.PLAYWRIGHT_BASE_URL ?? "https://life-exam-wkot.vercel.app";
 const isLocal = baseURL.startsWith("http://localhost") || baseURL.startsWith("http://127.0.0.1");
 
 export default defineConfig({

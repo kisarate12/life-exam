@@ -104,17 +104,6 @@ export default function LifeExamPage() {
     return () => observer.disconnect();
   }, [loading]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen relative z-10">
-        <Nav />
-        <main className="mx-auto max-w-2xl px-4 py-20">
-          <p className="text-sub">読み込み中...</p>
-        </main>
-      </div>
-    );
-  }
-
   const startHref = "/life-exam/new";
 
   return (
@@ -236,7 +225,7 @@ export default function LifeExamPage() {
       <section id="section-5" className="top-page-section section relative min-h-screen">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${WORLD_BG.underworld})` }}
+            style={{ backgroundImage: visibleBgs["section-5"] ? `url(${WORLD_BG.underworld})` : undefined }}
           />
           <div className="absolute inset-0 bg-[rgba(18,0,35,0.62)]" />
           <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
@@ -248,7 +237,7 @@ export default function LifeExamPage() {
             <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
               {WORLD_CHARS.underworld.map((name) => (
                 <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" />
+                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
                 </div>
               ))}
             </div>
