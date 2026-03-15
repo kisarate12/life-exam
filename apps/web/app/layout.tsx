@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Noto_Serif_JP } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { FullpageNavCleanup } from "./components/FullpageNavCleanup";
 import Footer from "./components/Footer";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = "G-1F7PLM5R13";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +59,18 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} min-h-screen overflow-auto antialiased`}>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         {children}
         <Footer />
         <FullpageNavCleanup />
