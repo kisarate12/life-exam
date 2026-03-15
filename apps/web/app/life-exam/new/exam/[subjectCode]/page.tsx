@@ -280,21 +280,21 @@ export default function LifeExamSubjectPage() {
 
             {error && <p className="text-sm text-[var(--rpg-accent-red)]">{error}</p>}
 
-            <div className="flex flex-col-reverse flex-wrap items-stretch gap-3 pt-4 md:flex-row md:flex-nowrap md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
               {currentIndex > 0 ? (
                 <Link
                   href={`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[currentIndex - 1]}`}
-                  className="btn-rpg-sub order-2 md:order-1"
+                  className="btn-rpg-sub"
                 >
                   前の科目へ
                 </Link>
               ) : (
-                <span className="order-2 md:order-1 hidden md:block" aria-hidden />
+                <span aria-hidden />
               )}
               <button
                 type="submit"
                 disabled={submitting}
-                className="btn-rpg-main order-1 md:order-2 md:ml-auto"
+                className="btn-rpg-main ml-auto whitespace-nowrap"
               >
                 {submitting
                   ? "送信中..."

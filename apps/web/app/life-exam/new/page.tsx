@@ -220,17 +220,17 @@ export default function LifeExamNewPage() {
             {error && (
               <p className="text-sm text-[var(--rpg-accent-red)]">{error}</p>
             )}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="btn-rpg-main"
-              >
-                {submitting ? "保存中..." : "次へ（診断へ）"}
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <Link href="/life-exam" className="btn-rpg-sub">
                 戻る
               </Link>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-rpg-main ml-auto whitespace-nowrap"
+              >
+                {submitting ? "保存中..." : "次へ（診断へ）"}
+              </button>
             </div>
           </form>
         </div>
