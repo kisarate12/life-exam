@@ -21,9 +21,32 @@ const notoSerifJP = Noto_Serif_JP({
   variable: "--font-noto-serif-jp",
 });
 
+const siteTitle = "人生審査";
+const siteDescription = "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
+const ogImagePath = "/og.png";
+
+/** OGP画像などメタの絶対URL用（VercelではVERCEL_URL、ローカルはlocalhost） */
+const baseUrl =
+  process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "人生審査",
-  description: "人生を相対評価する。5科目・25問で偏差値と合否を算出。",
+  metadataBase: new URL(baseUrl),
+  title: siteTitle,
+  description: siteDescription,
+  openGraph: {
+    title: siteTitle,
+    description: siteDescription,
+    type: "website",
+    images: [{ url: ogImagePath, width: 1200, height: 630, alt: siteTitle }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: [ogImagePath],
+  },
 };
 
 export default function RootLayout({
