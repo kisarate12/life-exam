@@ -31,8 +31,16 @@ export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [visibleBgs, setVisibleBgs] = useState<Record<string, boolean>>({});
+  /** 初回表示ではヒーロー＋CTAのみ描画し、アイドル後に世界セクションを描画して初期負荷を削減 */
+  const [showWorldSections, setShowWorldSections] = useState(false);
 
   useEffect(() => {
+    const id = setTimeout(() => setShowWorldSections(true), 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    if (!showWorldSections) return;
     const sections = WORLD_SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     if (sections.length === 0) return;
     const observer = new IntersectionObserver(
@@ -47,7 +55,7 @@ export default function LifeExamPage() {
     );
     sections.forEach((s) => observer.observe(s));
     return () => observer.disconnect();
-  }, [loading]);
+  }, [loading, showWorldSections]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -82,7 +90,7 @@ export default function LifeExamPage() {
   }, []);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !showWorldSections) return;
     const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     if (sections.length === 0) return;
     const observer = new IntersectionObserver(
@@ -102,7 +110,7 @@ export default function LifeExamPage() {
     );
     sections.forEach((s) => observer.observe(s));
     return () => observer.disconnect();
-  }, [loading]);
+  }, [loading, showWorldSections]);
 
   const startHref = "/life-exam/new";
 
@@ -152,6 +160,11 @@ export default function LifeExamPage() {
           </div>
       </section>
 
+      {/* 世界セクションは初回描画後に表示（初期負荷・離脱防止） */}
+      {!showWorldSections ? (
+        <div aria-hidden className="min-h-[400vh]" style={{ minHeight: "400dvh" }} />
+      ) : (
+        <>
       {/* セクション②：空の世界 */}
       <section id="section-2" className="top-page-section section relative min-h-screen">
           <div
@@ -243,6 +256,8 @@ export default function LifeExamPage() {
             </div>
           </div>
       </section>
+        </>
+      )}
 
       {/* セクション⑥：最終CTA（白背景で文字を見やすく） */}
       <section id="section-6" className="top-page-section section min-h-screen bg-white">

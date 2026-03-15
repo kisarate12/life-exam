@@ -31,6 +31,7 @@ export default function Nav() {
             width={32}
             height={32}
             className="nav-logo-img h-8 w-8 shrink-0 object-contain"
+            fetchPriority="high"
           />
           人生診断
         </Link>
