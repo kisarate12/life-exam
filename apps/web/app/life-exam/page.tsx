@@ -102,28 +102,23 @@ export default function LifeExamPage() {
       {/* セクション①：ヒーロー（白背景で文字を見やすく） */}
       <section id="section-1" className="top-page-section section min-h-screen bg-white pt-[73px]">
           <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
-            <p
-              className="fade-in-content font-bold text-[var(--theme-text)]"
-              style={{ fontSize: "clamp(32px, 6vw, 48px)" }}
-            >
-              あなたはどの世界の住人？
-            </p>
-            <p
-              className="fade-in-content mt-5 text-[var(--theme-text)]"
-              style={{ fontSize: 18, lineHeight: 1.7, opacity: 0.9 }}
-            >
-              今すぐ診断して、あなたの人生ランクを確かめよう
-            </p>
-            <div
-              className="fade-in-content mx-auto mt-8 max-w-lg text-left text-[var(--theme-text)]"
-              style={{ fontSize: 15, lineHeight: 1.8, opacity: 0.9 }}
-            >
-              <p className="font-semibold text-[var(--theme-accent-navy)]">人生審査とは</p>
-              <p className="mt-2">
-                資産・収入・人間関係・時間・健康の5つのステータスから、あなたの「人生ランク」を診断するサービスです。
-                約5分の質問に答えると、あなたにぴったりのキャラクターと世界（空・海・地上・闇）が導き出されます。
-                同世代や全世界との比較で自分の立ち位置がわかり、クエストや進化ロードマップで次の一歩のヒントも得られます。
+            <div className="fade-in-content">
+              <p
+                className="font-bold leading-tight text-[var(--theme-text)]"
+                style={{ fontSize: "clamp(26px, 5.5vw, 44px)" }}
+              >
+                あなたの人生は
+                <br />
+                どの世界の住人？
               </p>
+            </div>
+            <div
+              className="fade-in-content mt-6 text-[var(--theme-text)] md:mt-8"
+              style={{ fontSize: "clamp(14px, 2.5vw, 17px)", lineHeight: 1.7, opacity: 0.95 }}
+            >
+              <p>資産・収入・時間・人間関係・健康</p>
+              <p className="mt-0.5">5つの資本から</p>
+              <p className="mt-3 font-semibold">あなたの人生ランクを診断</p>
             </div>
             <Link
               href={startHref}
