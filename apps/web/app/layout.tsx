@@ -25,11 +25,10 @@ const siteTitle = "人生審査";
 const siteDescription = "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
 const ogImagePath = "/og.png";
 
-/** OGP画像などメタの絶対URL用（VercelではVERCEL_URL、ローカルはlocalhost） */
+/** OGP画像などメタの絶対URL。本番はNEXT_PUBLIC_SITE_URLで固定（VercelのVERCEL_URLはデプロイごとで変わるため） */
 const baseUrl =
-  process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
