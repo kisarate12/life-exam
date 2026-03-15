@@ -1,179 +1,226 @@
 /**
- * 人生診断：ランク比較と16キャラクター判定ロジック
- * ランク順序: S > A > B > C > D > E > F
+ * 人生診断：ランク比較と16キャラクター判定ロジック（仕様書ベース）
+ * ランク順序: S > A > B > C > D > E > F（数値が小さいほど良い）
  */
 import type { LifeStats, Rank, CharacterId } from "./types";
-import { RANKS } from "./types";
 import { CHARACTER_DEFINITIONS } from "./characters";
 import { CHARACTER_IMAGE_BASE } from "./characters";
 
-const RANK_INDEX: Record<Rank, number> = { S: 0, A: 1, B: 2, C: 3, D: 4, E: 5, F: 6 };
+const RANK_ORDER: Record<Rank, number> = { S: 0, A: 1, B: 2, C: 3, D: 4, E: 5, F: 6 };
 
-/** ランクが high 以上 low 以下（品質で）の範囲か。例: S〜B → inRange(r, 'B', 'S') */
-function inRange(rank: Rank, low: Rank, high: Rank): boolean {
-  const i = RANK_INDEX[rank];
-  return i <= RANK_INDEX[low] && i >= RANK_INDEX[high];
+type RankRange = "S~B" | "S~A" | "C~F" | "D~F" | "C";
+
+function inRange(rank: Rank, range: RankRange): boolean {
+  const r = RANK_ORDER[rank];
+  switch (range) {
+    case "S~B":
+      return r <= 2; // S, A, B
+    case "S~A":
+      return r <= 1; // S, A のみ
+    case "C~F":
+      return r >= 3; // C, D, E, F
+    case "D~F":
+      return r >= 4; // D, E, F
+    case "C":
+      return r === 3; // C のみ
+    default:
+      return false;
+  }
 }
 
-/** 2つのランクのうち良い方（Sに近い方）を返す */
-function betterRank(a: Rank, b: Rank): Rank {
-  return RANK_INDEX[a] <= RANK_INDEX[b] ? a : b;
-}
-
-/** 金融 = max(収入, 資産) */
-function financeRank(stats: LifeStats): Rank {
-  return betterRank(stats.income, stats.asset);
-}
-
-/** 空の世界: 金融S〜B かつ 時間S〜B */
-function isWorldSky(stats: LifeStats): boolean {
-  const fin = financeRank(stats);
-  return inRange(fin, "B", "S") && inRange(stats.time, "B", "S");
-}
-
-/** 海の世界: 金融C〜F かつ 時間S〜B */
-function isWorldSea(stats: LifeStats): boolean {
-  const fin = financeRank(stats);
-  return inRange(fin, "F", "C") && inRange(stats.time, "B", "S");
-}
-
-/** 地上の世界: 金融S〜B かつ 時間C〜F */
-function isWorldGround(stats: LifeStats): boolean {
-  const fin = financeRank(stats);
-  return inRange(fin, "B", "S") && inRange(stats.time, "F", "C");
-}
-
-/** 冥界: 金融C〜F かつ 時間C〜F */
-function isWorldUnderworld(stats: LifeStats): boolean {
-  const fin = financeRank(stats);
-  return inRange(fin, "F", "C") && inRange(stats.time, "F", "C");
-}
-
-/** 健康S〜B かつ 人間関係C〜F の XOR 的パターン（どちらか一方のみ良い） */
-function healthOrRelationshipOnly(stats: LifeStats): boolean {
-  const healthGood = inRange(stats.health, "B", "S");
-  const relGood = inRange(stats.relationship, "B", "S");
-  return (healthGood && !relGood) || (!healthGood && relGood);
-}
-
-/** 健康C〜F かつ 人間関係C〜F */
-function bothHealthRelBad(stats: LifeStats): boolean {
-  return inRange(stats.health, "F", "C") && inRange(stats.relationship, "F", "C");
-}
-
-/** 健康S〜B かつ 人間関係S〜B */
-function bothHealthRelGood(stats: LifeStats): boolean {
-  return inRange(stats.health, "B", "S") && inRange(stats.relationship, "B", "S");
+/** 金融（収入と資産の良い方） */
+function getKinyu(income: Rank, asset: Rank): Rank {
+  return RANK_ORDER[income] <= RANK_ORDER[asset] ? income : asset;
 }
 
 /**
- * 16キャラクターのいずれかを上から順に判定して返す
+ * キャラクター判定メイン
+ * 戻り値: { character: キャラ名, world: '空'|'海'|'地上'|'冥界' }
+ */
+function determineCharacter(
+  income: Rank,
+  asset: Rank,
+  health: Rank,
+  relationships: Rank,
+  time: Rank
+): { character: string; world: "空" | "海" | "地上" | "冥界" } | null {
+  const kinyu = getKinyu(income, asset);
+
+  // ===================== 空の世界 =====================
+  if (
+    inRange(income, "S~A") &&
+    inRange(asset, "S~B") &&
+    inRange(health, "S~A") &&
+    inRange(relationships, "S~A") &&
+    inRange(time, "S~A")
+  ) {
+    return { character: "アマテラス", world: "空" };
+  }
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "S~B")
+  ) {
+    return { character: "大将軍", world: "空" };
+  }
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(time, "S~B") &&
+    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
+      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+  ) {
+    return { character: "獅子", world: "空" };
+  }
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(health, "C~F") &&
+    inRange(relationships, "C~F") &&
+    inRange(time, "S~B")
+  ) {
+    return { character: "カイコ", world: "空" };
+  }
+
+  // ===================== 海の世界 =====================
+  if (
+    inRange(kinyu, "C") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "S~A")
+  ) {
+    return { character: "ツクヨミ", world: "海" };
+  }
+  if (
+    inRange(kinyu, "C~F") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "S~B")
+  ) {
+    return { character: "下流貴族", world: "海" };
+  }
+  if (
+    inRange(kinyu, "C~F") &&
+    inRange(time, "S~B") &&
+    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
+      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+  ) {
+    return { character: "亀", world: "海" };
+  }
+  if (
+    inRange(kinyu, "C~F") &&
+    inRange(health, "C~F") &&
+    inRange(relationships, "C~F") &&
+    inRange(time, "S~B")
+  ) {
+    return { character: "カタツムリ", world: "海" };
+  }
+
+  // ===================== 地上の世界 =====================
+  if (
+    inRange(income, "S~A") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "C")
+  ) {
+    return { character: "ドワーフ王", world: "地上" };
+  }
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "C~F")
+  ) {
+    return { character: "騎士", world: "地上" };
+  }
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(time, "C~F") &&
+    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
+      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+  ) {
+    return { character: "タヌキ", world: "地上" };
+  }
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(health, "C~F") &&
+    inRange(relationships, "C~F") &&
+    inRange(time, "C~F")
+  ) {
+    return { character: "フンコロガシ", world: "地上" };
+  }
+
+  // ===================== 冥界 =====================
+  if (
+    inRange(kinyu, "C") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "C~F")
+  ) {
+    return { character: "ゴブリンキング", world: "冥界" };
+  }
+  if (
+    inRange(kinyu, "D~F") &&
+    inRange(health, "S~B") &&
+    inRange(relationships, "S~B") &&
+    inRange(time, "C~F")
+  ) {
+    return { character: "農奴", world: "冥界" };
+  }
+  if (
+    inRange(kinyu, "C~F") &&
+    inRange(time, "C~F") &&
+    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
+      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+  ) {
+    return { character: "ハイエナ", world: "冥界" };
+  }
+  if (
+    inRange(kinyu, "C~F") &&
+    inRange(health, "C~F") &&
+    inRange(relationships, "C~F") &&
+    inRange(time, "C~F")
+  ) {
+    return { character: "蚊", world: "冥界" };
+  }
+
+  return null;
+}
+
+/** 判定結果のキャラ名 → CharacterId（定義の name とドワーフ王→ドワーフの王 の対応含む） */
+const CHARACTER_NAME_TO_ID: Record<string, CharacterId> = {
+  アマテラス: "amaterasu",
+  大将軍: "king",
+  獅子: "lion",
+  カイコ: "kaiko",
+  ツクヨミ: "tsukuyomi",
+  下流貴族: "noble",
+  亀: "turtle",
+  カタツムリ: "snail",
+  ドワーフ王: "dwarf_king",
+  騎士: "knight",
+  タヌキ: "tanuki",
+  フンコロガシ: "beetle",
+  ゴブリンキング: "goblin_king",
+  農奴: "serf",
+  ハイエナ: "hyena",
+  蚊: "mosquito",
+};
+
+/**
+ * LifeStats からキャラクターIDを判定
  */
 export function diagnose(stats: LifeStats): CharacterId {
-  const fin = financeRank(stats);
-
-  // --- 空の世界 ---
-  if (isWorldSky(stats)) {
-    if (
-      inRange(stats.asset, "B", "S") &&
-      inRange(stats.health, "B", "S") &&
-      inRange(stats.relationship, "B", "S") &&
-      inRange(stats.time, "B", "S")
-    ) {
-      return "amaterasu";
-    }
-    if (
-      inRange(stats.income, "B", "S") &&
-      inRange(stats.asset, "F", "C") &&
-      inRange(stats.health, "B", "S") &&
-      inRange(stats.relationship, "B", "S") &&
-      inRange(stats.time, "B", "S")
-    ) {
-      return "king";
-    }
-    if (healthOrRelationshipOnly(stats) && inRange(stats.time, "B", "S")) {
-      return "lion";
-    }
-    if (bothHealthRelBad(stats) && inRange(stats.time, "B", "S")) {
-      return "kaiko";
-    }
+  const result = determineCharacter(
+    stats.income,
+    stats.asset,
+    stats.health,
+    stats.relationship,
+    stats.time
+  );
+  if (result) {
+    const id = CHARACTER_NAME_TO_ID[result.character];
+    if (id) return id;
   }
-
-  // --- 海の世界 ---
-  if (isWorldSea(stats)) {
-    if (
-      fin === "C" &&
-      inRange(stats.health, "B", "S") &&
-      inRange(stats.relationship, "B", "S") &&
-      inRange(stats.time, "B", "S")
-    ) {
-      return "tsukuyomi";
-    }
-    if (
-      inRange(fin, "F", "D") &&
-      inRange(stats.health, "B", "S") &&
-      inRange(stats.relationship, "B", "S") &&
-      inRange(stats.time, "B", "S")
-    ) {
-      return "noble";
-    }
-    if (healthOrRelationshipOnly(stats) && inRange(stats.time, "B", "S")) {
-      return "turtle";
-    }
-    if (bothHealthRelBad(stats) && inRange(stats.time, "B", "S")) {
-      return "snail";
-    }
-  }
-
-  // --- 地上の世界 ---
-  if (isWorldGround(stats)) {
-    if (
-      bothHealthRelGood(stats) &&
-      stats.time === "C"
-    ) {
-      return "dwarf_king";
-    }
-    if (
-      bothHealthRelGood(stats) &&
-      inRange(stats.time, "F", "D")
-    ) {
-      return "knight";
-    }
-    if (healthOrRelationshipOnly(stats) && inRange(stats.time, "F", "C")) {
-      return "tanuki";
-    }
-    if (bothHealthRelBad(stats) && inRange(stats.time, "F", "C")) {
-      return "beetle";
-    }
-  }
-
-  // --- 冥界 ---
-  if (isWorldUnderworld(stats)) {
-    if (
-      fin === "C" &&
-      inRange(stats.health, "B", "S") &&
-      inRange(stats.relationship, "B", "S") &&
-      inRange(stats.time, "F", "C")
-    ) {
-      return "goblin_king";
-    }
-    if (
-      inRange(fin, "F", "D") &&
-      inRange(stats.health, "B", "S") &&
-      inRange(stats.relationship, "B", "S") &&
-      inRange(stats.time, "F", "C")
-    ) {
-      return "serf";
-    }
-    if (healthOrRelationshipOnly(stats) && inRange(stats.time, "F", "C")) {
-      return "hyena";
-    }
-    if (bothHealthRelBad(stats) && inRange(stats.time, "F", "C")) {
-      return "mosquito";
-    }
-  }
-
-  // フォールバック（理論上は必ずどれかに入る）
   return "mosquito";
 }
 
