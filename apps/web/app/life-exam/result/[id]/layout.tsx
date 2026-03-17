@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { CHARACTER_DEFINITIONS } from "@/lib/life-diagnosis/characters";
+import { CHARACTER_IDS } from "@/lib/life-diagnosis/types";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -10,6 +12,11 @@ const WORLD_LABEL: Record<string, string> = {
   地上: "地上の世界",
   冥界: "闇の世界",
 };
+
+/** キャラクター名 → characterId の逆引きマップ */
+const NAME_TO_ID = Object.fromEntries(
+  CHARACTER_IDS.map((id) => [CHARACTER_DEFINITIONS[id].name, id])
+);
 
 export async function generateMetadata({
   params,
@@ -41,16 +48,16 @@ export async function generateMetadata({
     // fallback to generic
   }
 
-  const title = characterName
-    ? `${characterName} | 人生診断`
-    : "人生診断";
-  const description = worldLabel && characterName
-    ? `${worldLabel}の住人「${characterName}」。あなたはどのキャラクター？`
-    : "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
+  const title = characterName ? `${characterName} | 人生診断` : "人生診断";
+  const description =
+    worldLabel && characterName
+      ? `${worldLabel}の住人「${characterName}」。あなたはどのキャラクター？`
+      : "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
 
-  // キャラクター画像をOGPに直接使用（動的生成なし）
-  const ogImageUrl = characterName
-    ? `${baseUrl}/life-diagnosis/characters/${encodeURIComponent(characterName)}.png`
+  // 事前生成した OGP カード画像を使用
+  const characterId = characterName ? NAME_TO_ID[characterName] : null;
+  const ogImageUrl = characterId
+    ? `${baseUrl}/ogp/${characterId}.png`
     : `${baseUrl}/og.png`;
 
   return {
@@ -60,7 +67,7 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      images: [{ url: ogImageUrl, alt: title }],
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
