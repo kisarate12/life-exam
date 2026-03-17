@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -203,8 +204,8 @@ function StarIcon({ filled }: { filled: boolean }) {
       <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F5D020" />
-            <stop offset="100%" stopColor="#C9A84C" />
+            <stop offset="0%" stopColor="#FFD700" />
+            <stop offset="100%" stopColor="#FFA500" />
           </linearGradient>
         </defs>
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill={`url(#${gradientId})`} />
@@ -213,7 +214,7 @@ function StarIcon({ filled }: { filled: boolean }) {
   }
   return (
     <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#E8E0D0" />
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#E8DDD0" />
     </svg>
   );
 }
@@ -231,13 +232,13 @@ function StatStars({ filledCount }: { filledCount: number }) {
 
 /** 凡例用：ランク色で星を表示 */
 const LEGEND_STAR_COLOR: Record<JudgementRank, string> = {
-  S: "#FFD700",
-  A: "#F5C842",
-  B: "#E8B84B",
-  C: "#D4A853",
-  D: "#B8925A",
-  E: "#9C7A61",
-  F: "#806268",
+  S: "#FFB84E",
+  A: "#FFB84E",
+  B: "#FFB84E",
+  C: "#FFB84E",
+  D: "#FFB84E",
+  E: "#FFB84E",
+  F: "#FFB84E",
 };
 function LegendStars({ rank }: { rank: JudgementRank }) {
   const count = RANK_STAR_COUNT[rank];
@@ -372,7 +373,7 @@ function ComparisonTable({
   return (
     <div className={className ? `mb-10 ${className}` : "mb-10"}>
       <h3 className="text-base font-bold text-[var(--foreground)]">{title}</h3>
-      {note && <p className="mt-1 text-xs text-[#6B7A99]">{note}</p>}
+      {note && <p className="mt-1 text-xs text-[#9A9290]">{note}</p>}
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[320px] table-fixed border-collapse text-sm" style={{ tableLayout: "fixed" }}>
           <colgroup>
@@ -386,13 +387,13 @@ function ComparisonTable({
           </colgroup>
           <thead>
             <tr className="border-b border-[var(--card-border)]">
-              <th className="py-2 text-center font-medium text-[#6B7A99]">科目</th>
-              <th className="py-2 text-center font-medium text-[#6B7A99]">あなた</th>
-              <th className="py-2 text-center font-medium text-[#6B7A99]">平均</th>
-              <th className="py-2 text-center font-medium text-[#6B7A99]">偏差値</th>
-              <th className="py-2 text-center font-medium text-[#6B7A99]">S〜F</th>
-              <th className="py-2 text-center font-medium text-[#6B7A99]">順位</th>
-              <th className="py-2 text-center font-medium text-[#6B7A99]">全体割合</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">科目</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">あなた</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">平均</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">偏差値</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">S〜F</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">順位</th>
+              <th className="py-2 text-center font-medium text-[#9A9290]">全体割合</th>
             </tr>
           </thead>
           <tbody>
@@ -400,7 +401,7 @@ function ComparisonTable({
               <tr key={i} className="border-b border-[var(--card-border)]">
                 <td className="py-2 text-center text-[var(--foreground)]">{row.subjectName}</td>
                 <td className="py-2 text-center tabular-nums text-[var(--foreground)]">{row.scoreDisplay}/{row.maxPoints}</td>
-                <td className="py-2 text-center tabular-nums text-[#6B7A99]">{row.avg != null ? row.avg : "—"}</td>
+                <td className="py-2 text-center tabular-nums text-[#9A9290]">{row.avg != null ? row.avg : "—"}</td>
                 <td className="py-2 text-center tabular-nums text-[var(--foreground)]">{row.deviation}</td>
                 <td className={`py-2 text-center font-medium ${getRankColorClass(row.rank)}`}>{row.rank}</td>
                 <td className="py-2 text-center text-sub">{row.rankText ?? "—"}</td>
@@ -411,7 +412,7 @@ function ComparisonTable({
               <tr className="border-t-2 border-[var(--card-border)] bg-[var(--surface-subtle)]">
                 <td className="py-3 text-center text-[var(--foreground)]">総合</td>
                 <td className="py-3 text-center tabular-nums text-[var(--foreground)]">{totalRow.score}/{totalRow.maxPoints}</td>
-                <td className="py-3 text-center tabular-nums text-[#6B7A99]">{totalRow.avgDisplay != null ? totalRow.avgDisplay : "—"}</td>
+                <td className="py-3 text-center tabular-nums text-[#9A9290]">{totalRow.avgDisplay != null ? totalRow.avgDisplay : "—"}</td>
                 <td className="py-3 text-center tabular-nums text-[var(--foreground)]">{totalRow.deviation}</td>
                 <td className={`py-3 text-center font-medium ${getRankColorClass(totalRow.rank)}`}>{totalRow.rank}</td>
                 <td className="py-3 text-center text-sub">{totalRow.rankText ?? "—"}</td>
@@ -462,6 +463,8 @@ export default function LifeExamResultPage() {
   const [characterImageError, setCharacterImageError] = useState(false);
   const [analysisImageErrors, setAnalysisImageErrors] = useState<Record<string, boolean>>({});
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const [rankingStats, setRankingStats] = useState<{
     globalRank: number;
     globalTotal: number;
@@ -828,18 +831,31 @@ export default function LifeExamResultPage() {
   const distributionPosition = Math.min(100, Math.max(0, displayDeviation));
   const resultUrl = typeof window !== "undefined" ? `${window.location.origin}/life-exam/result/${id}` : "";
   const shareModalCardFooter = (
-    <div className="mt-4 border-t border-[#E8E0D0] pt-3 text-center">
-      <p className="text-[#B8966A]" style={{ fontSize: 11 }}>{resultUrl}</p>
-      <p className="mt-1 text-[#B8966A]" style={{ fontSize: 11 }}>#人生診断</p>
+    <div className="mt-4 border-t border-[#E8DDD0] pt-3 text-center">
+      <p className="text-[#D0C8C0]" style={{ fontSize: 11 }}>{resultUrl}</p>
+      <p className="mt-1 text-[#D0C8C0]" style={{ fontSize: 11 }}>#人生診断</p>
     </div>
   );
+  const handleDownloadCard = async () => {
+    if (!shareCardRef.current || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, cacheBust: true });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `人生診断_${characterResult.name}.png`;
+      a.click();
+    } catch {
+      alert("画像の生成に失敗しました。スクリーンショットをお試しください。");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
   const handleShareInstagram = () => {
-    alert("スクショを保存してInstagramに投稿してね！");
-    window.open("instagram://app", "_blank");
+    handleDownloadCard();
   };
   const handleShareTikTok = () => {
-    alert("スクショを保存してTikTokに投稿してね！");
-    window.open("tiktok://", "_blank");
+    handleDownloadCard();
   };
   const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`私は「${characterResult.name}」でした！\n世界：${worldDisplay.name}\n総合点：${totalScoreDisplay}点\n#人生診断\n${resultUrl}`)}`;
   const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(resultUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！#人生診断`)}`;
@@ -864,28 +880,28 @@ export default function LifeExamResultPage() {
           >
             ✕
           </button>
-          {/* キャラカード全体が収まるエリア（スクショ用） */}
-          <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 120px)" }}>
-            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8E0D0] bg-white p-8 shadow-lg">
-              <div className="text-center rounded-xl border border-[#E8E0D0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #C9A84C" }}>
-                <span className="text-sm font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
+          {/* キャラカード全体が収まるエリア */}
+          <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
+            <div ref={shareCardRef} className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
+              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #F57550" }}>
+                <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
               </div>
               <div className="flex justify-center" style={{ marginBottom: 16 }}>
                 <div className="flex max-h-[240px] max-w-[240px] items-center justify-center">
                   {!characterImageError ? (
                     <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[240px] max-w-[240px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
                   ) : (
-                    <div className="flex h-40 w-40 items-center justify-center rounded-xl border border-[#E8E0D0] bg-white text-sm text-[#6B7A99]">画像を配置</div>
+                    <div className="flex h-40 w-40 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sm text-[#9A9290]">画像を配置</div>
                   )}
                 </div>
               </div>
               <div className="text-center" style={{ marginBottom: 16 }}>
-                <h2 className="font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>{characterResult.name}</h2>
+                <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>{characterResult.name}</h2>
               </div>
               <div className="text-center" style={{ marginBottom: 16 }}>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
               </div>
-              <div className="border-t border-[#E8E0D0] pt-4">
+              <div className="border-t border-[#E8DDD0] pt-4">
                 {[
                   { label: "収入", rank: comparisonRowsSameGen.find((r) => r.subjectName === "収入")?.rank ?? "C" },
                   { label: "資産", rank: comparisonRowsSameGen.find((r) => r.subjectName === "資産")?.rank ?? "C" },
@@ -894,7 +910,7 @@ export default function LifeExamResultPage() {
                   { label: "時間", rank: comparisonRowsSameGen.find((r) => r.subjectName === "時間")?.rank ?? "C" },
                 ].map(({ label, rank }) => (
                   <div key={label} className="flex items-center justify-between py-2 text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                    <span className="text-[#1B2A4A]">{label}</span>
+                    <span className="text-[#333333]">{label}</span>
                     <StatStars filledCount={RANK_STAR_COUNT[rank]} />
                   </div>
                 ))}
@@ -902,7 +918,15 @@ export default function LifeExamResultPage() {
               {shareModalCardFooter}
             </div>
           </div>
-          <p className="mt-4 shrink-0 text-center font-bold" style={{ color: "#FFD700" }}>📸 スクショを撮ってね！</p>
+          <button
+            type="button"
+            onClick={handleDownloadCard}
+            disabled={isDownloading}
+            className="mt-4 shrink-0 w-full max-w-sm rounded-xl py-3 text-sm font-bold transition hover:opacity-80 disabled:opacity-50"
+            style={{ background: "#FFD700", color: "#333333" }}
+          >
+            {isDownloading ? "生成中..." : "📥 画像を保存する"}
+          </button>
         </div>
       )}
 
@@ -910,16 +934,16 @@ export default function LifeExamResultPage() {
       <main className="mx-auto max-w-2xl px-4 py-8 sm:py-10">
         {/* 診断結果（カード） */}
         <section className="card-rpg p-4 sm:p-6">
-          <div className="font-diagnosis-card mx-auto max-w-sm overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-white p-8 shadow-[var(--shadow-card)]" style={{ borderColor: "#E8E0D0" }}>
+          <div className="font-diagnosis-card mx-auto max-w-sm overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-white p-8 shadow-[var(--shadow-card)]" style={{ borderColor: "#E8DDD0" }}>
             {/* 世界名 */}
             <div
-              className="text-center rounded-xl border border-[#E8E0D0] bg-white py-3 px-4"
+              className="text-center rounded-xl border border-[#E8DDD0] bg-white py-3 px-4"
               style={{
                 marginBottom: 16,
-                borderLeft: "4px solid #C9A84C",
+                borderLeft: "4px solid #F57550",
               }}
             >
-              <span className="text-sm font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+              <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
                 {worldLabelDisplay}
               </span>
             </div>
@@ -936,7 +960,7 @@ export default function LifeExamResultPage() {
                   />
                 ) : (
                   <div
-                    className="flex h-40 w-40 items-center justify-center rounded-xl border border-[#E8E0D0] bg-white text-sub text-sm"
+                    className="flex h-40 w-40 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sub text-sm"
                     aria-hidden
                   >
                     画像を配置
@@ -946,21 +970,21 @@ export default function LifeExamResultPage() {
             </div>
             {/* キャラクター名 */}
             <div className="text-center" style={{ marginBottom: 16 }}>
-              <h2 className="font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>
+              <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>
                 {characterResult.name}
               </h2>
             </div>
             {/* 説明文 */}
             <div className="text-center" style={{ marginBottom: 16 }}>
               <p
-                className="whitespace-pre-line text-sm leading-relaxed text-[#1B2A4A]"
+                className="whitespace-pre-line text-sm leading-relaxed text-[#333333]"
                 style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}
               >
                 {characterResult.description}
               </p>
             </div>
             {/* 5ステータス・星（space-between） */}
-            <div className="border-t border-[#E8E0D0] pt-4">
+            <div className="border-t border-[#E8DDD0] pt-4">
               {[
                 { label: "収入", rank: comparisonRowsSameGen.find((r) => r.subjectName === "収入")?.rank ?? "C" },
                 { label: "資産", rank: comparisonRowsSameGen.find((r) => r.subjectName === "資産")?.rank ?? "C" },
@@ -969,7 +993,7 @@ export default function LifeExamResultPage() {
                 { label: "時間", rank: comparisonRowsSameGen.find((r) => r.subjectName === "時間")?.rank ?? "C" },
               ].map(({ label, rank }) => (
                 <div key={label} className="flex items-center justify-between py-2 text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                  <span className="text-[#1B2A4A]">{label}</span>
+                  <span className="text-[#333333]">{label}</span>
                   <StatStars filledCount={RANK_STAR_COUNT[rank]} />
                 </div>
               ))}
@@ -977,12 +1001,12 @@ export default function LifeExamResultPage() {
           </div>
           {/* 凡例 S〜F */}
           <div
-            className="font-diagnosis-card mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 rounded-xl border border-[#E8E0D0] bg-white px-4 py-3 text-sm text-[#1B2A4A]"
+            className="font-diagnosis-card mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 rounded-xl border border-[#E8DDD0] bg-white px-4 py-3 text-sm text-[#333333]"
             style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}
           >
             {(["S", "A", "B", "C", "D", "E", "F"] as const).map((r) => (
               <span key={r} className="inline-flex items-center gap-1">
-                <span className="font-bold text-[#1B2A4A]">{r}</span>
+                <span className="font-bold text-[#333333]">{r}</span>
                 <span>：</span>
                 <LegendStars rank={r} />
               </span>
@@ -997,25 +1021,25 @@ export default function LifeExamResultPage() {
           </h2>
 
           <p
-            className="mb-2 text-2xl font-bold text-[#1B2A4A]"
+            className="mb-2 text-2xl font-bold text-[#333333]"
             style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}
           >
             戦闘力：{totalScoreDisplay.toLocaleString("ja-JP")} / {TOTAL_MAX_DISPLAY.toLocaleString("ja-JP")}
           </p>
           <div
             className="mb-6 h-3 w-full overflow-hidden rounded-full"
-            style={{ background: "rgba(201,168,76,0.2)" }}
+            style={{ background: "rgba(245,117,80,0.2)" }}
           >
             <div
               className="h-full rounded-full transition-[width]"
               style={{
                 width: `${(totalScoreDisplay / TOTAL_MAX_DISPLAY) * 100}%`,
-                background: "linear-gradient(90deg, #F5D020, #C9A84C)",
+                background: "linear-gradient(90deg, #FFB84E, #F57550)",
               }}
             />
           </div>
 
-          <div className="flex flex-col gap-3 text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+          <div className="flex flex-col gap-3 text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
             <p className="text-base font-bold">
               全世界：{globalRankDisplay != null ? `${globalRankDisplay} / ${rankingStats!.globalTotal.toLocaleString("ja-JP")}人` : "—"}
             </p>
@@ -1033,7 +1057,7 @@ export default function LifeExamResultPage() {
           <div className="mb-6 flex justify-center">
             <StatusRadarChart rows={rowsForAnalysis} />
           </div>
-          <div className="divide-y divide-[#E8E0D0]">
+          <div className="divide-y divide-[#E8DDD0]">
             {rowsForAnalysis.map((row) => (
               <div
                 key={row.subjectName}
@@ -1043,7 +1067,7 @@ export default function LifeExamResultPage() {
                 {/* 1行目：ステータス名 ＋ ランク ＋ ゴールドバー（幅を揃えて開始位置を一致） */}
                 <div className="flex items-center gap-2">
                   <span
-                    className="shrink-0 font-bold text-[#1B2A4A]"
+                    className="shrink-0 font-bold text-[#333333]"
                     style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 700, fontSize: 16, minWidth: "5em" }}
                   >
                     {row.subjectName}
@@ -1060,22 +1084,22 @@ export default function LifeExamResultPage() {
                   >
                     {row.rank}
                   </span>
-                  <div className="min-h-[10px] min-w-0 flex-1 overflow-hidden rounded" style={{ background: "rgba(201,168,76,0.2)" }}>
+                  <div className="min-h-[10px] min-w-0 flex-1 overflow-hidden rounded" style={{ background: "rgba(245,117,80,0.2)" }}>
                     <div
                       className="h-full rounded transition-[width]"
-                      style={{ width: `${RANK_FILL_PERCENT[row.rank]}%`, background: "linear-gradient(90deg, #F5D020, #C9A84C)", minHeight: 10 }}
+                      style={{ width: `${RANK_FILL_PERCENT[row.rank]}%`, background: "linear-gradient(90deg, #FFB84E, #F57550)", minHeight: 10 }}
                     />
                   </div>
                 </div>
                 {/* 2行目：同世代 上位○% ／ 全世代 上位○% */}
-                <p className="mt-1 text-left text-xs text-[#6B7A99]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+                <p className="mt-1 text-left text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
                   同世代 {row.sameGenPercent}　全世代 {row.allPercent}
                 </p>
                 {/* 3行目：コメント（全ランク） */}
                 {STAT_COMMENTS[row.subjectName]?.[row.rank] && (
                   <p
                     className="mt-1 text-left italic"
-                    style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 12, color: "#6B7A99", marginTop: 4 }}
+                    style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 12, color: "#9A9290", marginTop: 4 }}
                   >
                     {STAT_COMMENTS[row.subjectName][row.rank]}
                   </p>
@@ -1091,7 +1115,7 @@ export default function LifeExamResultPage() {
             📜 クエスト
           </h2>
           {questItemsForAnalysis.length === 0 ? (
-            <p className="text-[#6B7A99]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>現在クリアすべきクエストはありません！</p>
+            <p className="text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>現在クリアすべきクエストはありません！</p>
           ) : (
             <div className="space-y-5">
               {questItemsForAnalysis.map((row) => {
@@ -1099,10 +1123,10 @@ export default function LifeExamResultPage() {
                 return (
                   <article
                     key={row.subjectName}
-                    className="overflow-hidden rounded-xl transition-shadow duration-200 hover:shadow-[0_4px_16px_rgba(201,168,76,0.12)]"
+                    className="overflow-hidden rounded-xl transition-shadow duration-200 hover:shadow-[0_4px_16px_rgba(245,117,80,0.12)]"
                     style={{
                       background: "#FFFFFF",
-                      border: "1px solid #C9A84C",
+                      border: "1px solid #F57550",
                       borderRadius: 12,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                     }}
@@ -1114,10 +1138,10 @@ export default function LifeExamResultPage() {
                           style={{
                             fontFamily: "var(--font-noto-serif-jp), serif",
                             fontSize: 15,
-                            color: "#1B2A4A",
+                            color: "#333333",
                           }}
                         >
-                          {row.subjectName} <span style={{ color: "#6B7A99", fontWeight: 600 }}>ランク{row.rank}</span>
+                          {row.subjectName} <span style={{ color: "#9A9290", fontWeight: 600 }}>ランク{row.rank}</span>
                         </p>
                         {difficulty && (
                           <span
@@ -1126,10 +1150,10 @@ export default function LifeExamResultPage() {
                               fontFamily: "var(--font-noto-serif-jp), serif",
                               fontSize: 11,
                               background: "transparent",
-                              color: "#1B2A4A",
+                              color: "#333333",
                               padding: "4px 10px",
                               borderRadius: 20,
-                              border: "1px solid #C9A84C",
+                              border: "1px solid #F57550",
                             }}
                           >
                             {difficulty.label}
@@ -1142,18 +1166,18 @@ export default function LifeExamResultPage() {
                           fontFamily: "var(--font-noto-serif-jp), serif",
                           fontSize: 14,
                           lineHeight: 1.8,
-                          color: "#3D3D3D",
+                          color: "#333333",
                         }}
                       >
                         {getQuestAdvice(row.subjectName, row.rank)}
                       </p>
                       {difficulty && (
                         <p
-                          className="italic m-0 mt-3 pt-3 text-[#6B7A99]"
+                          className="italic m-0 mt-3 pt-3 text-[#9A9290]"
                           style={{
                             fontFamily: "var(--font-noto-serif-jp), serif",
                             fontSize: 12,
-                            borderTop: "1px dashed #E8E0D0",
+                            borderTop: "1px dashed #E8DDD0",
                           }}
                         >
                           {difficulty.desc}
@@ -1173,8 +1197,8 @@ export default function LifeExamResultPage() {
           <div className="flex flex-col items-center gap-4">
             {/* 進化先（上）：現在のキャラクターと同じ120px */}
             {!evolutionMapInfo.isSummit && evolutionMapInfo.target && (
-              <div className="flex flex-col items-center border border-[#E8E0D0] bg-white rounded-xl p-4">
-                <p className="mb-2 text-xs font-bold text-[#C9A84C]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>進化先</p>
+              <div className="flex flex-col items-center border border-[#E8DDD0] bg-white rounded-xl p-4">
+                <p className="mb-2 text-xs font-bold text-[#F57550]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>進化先</p>
                 <div className="flex items-center gap-3 sm:flex-row">
                   <div className="relative shrink-0 overflow-hidden rounded-lg bg-white" style={{ width: 120, height: 120 }}>
                     {!analysisImageErrors[`evo-${evolutionMapInfo.target.id}`] ? (
@@ -1185,12 +1209,12 @@ export default function LifeExamResultPage() {
                         onError={() => setAnalysisImageErrors((e) => ({ ...e, [`evo-${evolutionMapInfo.target!.id}`]: true }))}
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-[#6B7A99]">画像</div>
+                      <div className="flex h-full w-full items-center justify-center text-xs text-[#9A9290]">画像</div>
                     )}
                   </div>
                   <div>
-                    <p className="font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{evolutionMapInfo.target.name}</p>
-                    <p className="text-sm text-[#6B7A99]">{getWorldLabelDisplay(evolutionMapInfo.target.world)}</p>
+                    <p className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{evolutionMapInfo.target.name}</p>
+                    <p className="text-sm text-[#9A9290]">{getWorldLabelDisplay(evolutionMapInfo.target.world)}</p>
                   </div>
                 </div>
               </div>
@@ -1200,7 +1224,7 @@ export default function LifeExamResultPage() {
             {!evolutionMapInfo.isSummit && evolutionMapInfo.conditionText && evolutionMapInfo.target && (
               <p
                 className="text-center font-medium"
-                style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#C9A84C", fontSize: 24 }}
+                style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#F57550", fontSize: 24 }}
               >
                 ↑
               </p>
@@ -1208,25 +1232,25 @@ export default function LifeExamResultPage() {
             {!evolutionMapInfo.isSummit && evolutionMapInfo.conditionText && evolutionMapInfo.target && (
               <p
                 className="text-center text-sm"
-                style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#C9A84C" }}
+                style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#F57550" }}
               >
                 {evolutionMapInfo.conditionText} → {evolutionMapInfo.target.name}に進化
               </p>
             )}
 
             {/* 現在のキャラクター（中央・120px） */}
-            <div className="rounded-xl border border-[#E8E0D0] bg-white p-4">
+            <div className="rounded-xl border border-[#E8DDD0] bg-white p-4">
               {evolutionMapInfo.isSummit && (
-                <p className="mb-2 text-center text-sm font-bold text-[#C9A84C]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+                <p className="mb-2 text-center text-sm font-bold text-[#F57550]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
                   頂点に達しています！
                 </p>
               )}
               {evolutionMapInfo.isSummit && (
-                <p className="mb-4 text-center text-sm text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+                <p className="mb-4 text-center text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
                   {SUMMIT_MESSAGE}
                 </p>
               )}
-                <p className="mb-2 text-xs font-bold text-[#6B7A99]">現在のキャラクター</p>
+                <p className="mb-2 text-xs font-bold text-[#9A9290]">現在のキャラクター</p>
               <div className="flex items-center gap-3">
                 <div className="relative shrink-0 overflow-hidden rounded-lg bg-white" style={{ width: 120, height: 120 }}>
                   {!analysisImageErrors[characterResult.id] ? (
@@ -1237,12 +1261,12 @@ export default function LifeExamResultPage() {
                       onError={() => setAnalysisImageErrors((e) => ({ ...e, [characterResult.id]: true }))}
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-[#6B7A99]">画像</div>
+                    <div className="flex h-full w-full items-center justify-center text-xs text-[#9A9290]">画像</div>
                   )}
                 </div>
                 <div className="text-left">
-                  <p className="font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{characterResult.name}</p>
-                  <p className="text-sm text-[#6B7A99]">{worldLabelDisplay}</p>
+                  <p className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{characterResult.name}</p>
+                  <p className="text-sm text-[#9A9290]">{worldLabelDisplay}</p>
                 </div>
               </div>
             </div>
@@ -1258,7 +1282,7 @@ export default function LifeExamResultPage() {
           >
             シェア用にカードを表示する
           </button>
-          <p className="mt-4 text-center text-sm font-bold text-[#1B2A4A]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+          <p className="mt-4 text-center text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
             SNSでシェアしよう
           </p>
           <div className="mt-2 flex flex-wrap justify-center gap-4">
@@ -1304,13 +1328,13 @@ export default function LifeExamResultPage() {
           className="mt-8 rounded-[24px] border-2 px-4 py-6 text-center md:px-6 md:py-10"
           style={{
             background: "#FFFFFF",
-            borderColor: "#C9A84C",
+            borderColor: "#F57550",
           }}
         >
           <p className="mb-4 text-[48px] leading-none">💬</p>
           <h2
             className="mb-3 font-bold"
-            style={{ fontSize: 24, color: "#1B2A4A" }}
+            style={{ fontSize: 24, color: "#333333" }}
           >
             あなたの課題を一緒に解決しませんか？
           </h2>
@@ -1318,7 +1342,7 @@ export default function LifeExamResultPage() {
             className="mx-auto mb-6 max-w-xl"
             style={{
               fontSize: 14,
-              color: "#1B2A4A",
+              color: "#333333",
               lineHeight: 1.8,
             }}
           >
@@ -1329,7 +1353,7 @@ export default function LifeExamResultPage() {
               className="mx-auto mb-6 max-w-lg italic"
               style={{
                 fontSize: 15,
-                color: "#6B7A99",
+                color: "#9A9290",
               }}
             >
               {LINE_CHARACTER_MESSAGE[characterResult.name]}
