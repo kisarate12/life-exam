@@ -20,25 +20,26 @@ async function loadJapaneseFont(): Promise<ArrayBuffer | null> {
           "User-Agent":
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
         },
+        signal: AbortSignal.timeout(4000),
       }
     ).then((r) => r.text());
 
-    // /* japanese */ ブロックを優先して取得
+    // /* japanese */ ブロックを優先
     const blocks = css.split("@font-face");
+    let fontUrl: string | null = null;
     for (const block of blocks) {
       if (block.includes("japanese")) {
         const match = block.match(/src: url\(([^)]+)\)/);
-        if (match?.[1]) {
-          return fetch(match[1]).then((r) => r.arrayBuffer());
-        }
+        if (match?.[1]) { fontUrl = match[1]; break; }
       }
     }
-    // フォールバック：最初のURLを使用
-    const fallback = css.match(/src: url\(([^)]+)\)/);
-    if (fallback?.[1]) {
-      return fetch(fallback[1]).then((r) => r.arrayBuffer());
+    if (!fontUrl) {
+      const fallback = css.match(/src: url\(([^)]+)\)/);
+      fontUrl = fallback?.[1] ?? null;
     }
-    return null;
+    if (!fontUrl) return null;
+
+    return await fetch(fontUrl, { signal: AbortSignal.timeout(4000) }).then((r) => r.arrayBuffer());
   } catch {
     return null;
   }
@@ -51,7 +52,7 @@ export default async function OgImage({
 }) {
   const { id } = await params;
 
-  let characterName = "人生診断の結果";
+  let characterName = "人生診断";
   let worldShort = "";
   let totalScore: number | null = null;
 
@@ -63,6 +64,7 @@ export default async function OgImage({
           apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
         },
+        signal: AbortSignal.timeout(4000),
       }
     );
     const data = await res.json();
@@ -76,175 +78,193 @@ export default async function OgImage({
   }
 
   const worldCfg = WORLD_CONFIG[worldShort] ?? {
-    label: "人生診断",
+    label: "",
     bg: "#111120",
     accent: "#F57550",
   };
 
   const fontData = await loadJapaneseFont();
-  const fontFamily = fontData ? "'Noto Sans JP', sans-serif" : "sans-serif";
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          background: `linear-gradient(145deg, ${worldCfg.bg} 0%, #080810 100%)`,
-          padding: "52px 72px",
-          fontFamily,
-          position: "relative",
-        }}
-      >
-        {/* Top accent line */}
+  try {
+    return new ImageResponse(
+      (
         <div
           style={{
-            display: "flex",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 5,
-            background: worldCfg.accent,
-          }}
-        />
-
-        {/* Decorative circle */}
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            right: -120,
-            top: -120,
-            width: 480,
-            height: 480,
-            borderRadius: "50%",
-            background: `${worldCfg.accent}18`,
-          }}
-        />
-
-        {/* Service name */}
-        <div style={{ display: "flex", marginBottom: 40 }}>
-          <span
-            style={{
-              fontSize: 20,
-              color: worldCfg.accent,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-            }}
-          >
-            人生診断
-          </span>
-        </div>
-
-        {/* Main content */}
-        <div
-          style={{
+            width: "100%",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
-            flex: 1,
-            justifyContent: "center",
+            background: `linear-gradient(145deg, ${worldCfg.bg} 0%, #080810 100%)`,
+            padding: "52px 72px",
+            fontFamily: fontData ? "'Noto Sans JP', sans-serif" : "sans-serif",
+            position: "relative",
           }}
         >
-          {/* World badge */}
-          {worldShort && (
-            <div style={{ display: "flex", marginBottom: 24 }}>
-              <span
-                style={{
-                  fontSize: 20,
-                  color: "rgba(255,255,255,0.65)",
-                  border: `1px solid ${worldCfg.accent}99`,
-                  padding: "5px 18px",
-                  borderRadius: 4,
-                }}
-              >
-                {worldCfg.label}の住人
-              </span>
-            </div>
-          )}
+          {/* Top accent line */}
+          <div
+            style={{
+              display: "flex",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 5,
+              background: worldCfg.accent,
+            }}
+          />
 
-          {/* Character name */}
-          <div style={{ display: "flex" }}>
+          {/* Decorative circle */}
+          <div
+            style={{
+              display: "flex",
+              position: "absolute",
+              right: -120,
+              top: -120,
+              width: 480,
+              height: 480,
+              borderRadius: "50%",
+              background: `${worldCfg.accent}18`,
+            }}
+          />
+
+          {/* Service name */}
+          <div style={{ display: "flex", marginBottom: 40 }}>
             <span
               style={{
-                fontSize: characterName.length > 6 ? 72 : 88,
+                fontSize: 20,
+                color: worldCfg.accent,
                 fontWeight: 700,
-                color: "#FFFFFF",
-                lineHeight: 1.1,
               }}
             >
-              {characterName}
+              人生診断
             </span>
           </div>
 
-          {/* Score */}
-          {totalScore != null && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: 10,
-                marginTop: 20,
-              }}
-            >
-              <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
-                総合スコア
-              </span>
-              <span
-                style={{
-                  fontSize: 56,
-                  fontWeight: 700,
-                  color: worldCfg.accent,
-                }}
-              >
-                {totalScore}
-              </span>
-              <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
-                点
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Bottom */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-          }}
-        >
-          <span style={{ fontSize: 17, color: "rgba(255,255,255,0.35)" }}>
-            あなたの人生を、相対評価する。
-          </span>
-          <span
+          {/* Main content */}
+          <div
             style={{
-              fontSize: 17,
-              color: worldCfg.accent,
-              fontWeight: 700,
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
+              justifyContent: "center",
             }}
           >
-            #人生診断
+            {worldShort !== "" && (
+              <div style={{ display: "flex", marginBottom: 24 }}>
+                <span
+                  style={{
+                    fontSize: 20,
+                    color: "rgba(255,255,255,0.65)",
+                    border: `1px solid ${worldCfg.accent}99`,
+                    padding: "5px 18px",
+                    borderRadius: 4,
+                  }}
+                >
+                  {worldCfg.label}の住人
+                </span>
+              </div>
+            )}
+
+            <div style={{ display: "flex" }}>
+              <span
+                style={{
+                  fontSize: characterName.length > 6 ? 72 : 88,
+                  fontWeight: 700,
+                  color: "#FFFFFF",
+                  lineHeight: 1.1,
+                }}
+              >
+                {characterName}
+              </span>
+            </div>
+
+            {totalScore != null && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 10,
+                  marginTop: 20,
+                }}
+              >
+                <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
+                  総合スコア
+                </span>
+                <span
+                  style={{
+                    fontSize: 56,
+                    fontWeight: 700,
+                    color: worldCfg.accent,
+                  }}
+                >
+                  {totalScore}
+                </span>
+                <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
+                  点
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+            }}
+          >
+            <span style={{ fontSize: 17, color: "rgba(255,255,255,0.35)" }}>
+              あなたの人生を、相対評価する。
+            </span>
+            <span
+              style={{
+                fontSize: 17,
+                color: worldCfg.accent,
+                fontWeight: 700,
+              }}
+            >
+              #人生診断
+            </span>
+          </div>
+        </div>
+      ),
+      {
+        ...size,
+        ...(fontData
+          ? {
+              fonts: [
+                {
+                  name: "Noto Sans JP",
+                  data: fontData,
+                  weight: 700,
+                  style: "normal",
+                },
+              ],
+            }
+          : {}),
+      }
+    );
+  } catch {
+    // 最終フォールバック：シンプルな画像
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#111120",
+          }}
+        >
+          <span style={{ fontSize: 48, color: "#F57550", fontWeight: 700 }}>
+            人生診断
           </span>
         </div>
-      </div>
-    ),
-    {
-      ...size,
-      ...(fontData
-        ? {
-            fonts: [
-              {
-                name: "Noto Sans JP",
-                data: fontData,
-                weight: 700,
-                style: "normal",
-              },
-            ],
-          }
-        : {}),
-    }
-  );
+      ),
+      size
+    );
+  }
 }
