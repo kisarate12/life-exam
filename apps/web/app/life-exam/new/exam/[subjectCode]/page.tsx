@@ -111,6 +111,62 @@ export default function LifeExamSubjectPage() {
     })();
   }, [subjectCode, isValidCode, router]);
 
+  const handleDevAutoSubmit = async () => {
+    if (!user || !profileAgeBand) return;
+    setSubmitting(true);
+    setError(null);
+    // 全科目・全設問に最高点を設定
+    const allAnswers: Record<number, number> = {};
+    for (const q of questions) {
+      const code = subjects.find((s) => s.id === q.subject_id)?.code;
+      if (!code) continue;
+      const defs = EXAM_V2_QUESTIONS[code as SubjectCode] ?? [];
+      const def = defs[q.sort_order - 1];
+      if (!def) continue;
+      allAnswers[q.id] = Math.max(...def.options.map((o) => o.points));
+    }
+    const questionSubjectMap: Record<number, number> = {};
+    questions.forEach((q) => { questionSubjectMap[q.id] = q.subject_id; });
+    const subjectScores = computeSubjectScoresV2(allAnswers, questionSubjectMap);
+    const { totalScore, deviationValue, passed } = computeTotalAndDeviation(subjectScores, null);
+    const sameAge = await resolveSameAgeNorm(profileAgeBand, totalScore);
+    const { data: attempt, error: attemptErr } = await supabase
+      .from("life_exam_attempts")
+      .insert({
+        user_id: user.id,
+        age_band_at_attempt: profileAgeBand,
+        gender_at_attempt: profileGender || null,
+        aspiration_type_at_attempt: profileAspirationType || null,
+        university_at_attempt: profileUniversity || null,
+        exam_version: "2",
+        total_score: totalScore,
+        deviation_value: deviationValue,
+        passed,
+        same_age_mean: sameAge?.mean ?? null,
+        same_age_stddev: sameAge?.stddev ?? null,
+        same_age_deviation_value: sameAge?.deviationValue ?? null,
+      })
+      .select("id")
+      .single();
+    if (attemptErr || !attempt) {
+      setError(attemptErr?.message ?? "送信エラー");
+      setSubmitting(false);
+      return;
+    }
+    await supabase.from("life_exam_answers").insert(
+      Object.entries(allAnswers).map(([qId, val]) => ({
+        attempt_id: attempt.id, question_id: Number(qId), value_numeric: val, value_text: null,
+      }))
+    );
+    await supabase.from("life_exam_scores").insert(
+      Object.entries(subjectScores).map(([sId, score]) => ({
+        attempt_id: attempt.id, subject_id: Number(sId), score: Number(score),
+      }))
+    );
+    localStorage.removeItem(DRAFT_KEY);
+    router.push(`/life-exam/result/${attempt.id}`);
+  };
+
   const setAnswer = (questionId: number, points: number) => {
     setError(null);
     setAnswers((prev) => ({ ...prev, [questionId]: points }));
@@ -223,6 +279,16 @@ export default function LifeExamSubjectPage() {
 
   return (
     <div className="min-h-screen relative z-10">
+      {process.env.NODE_ENV === "development" && (
+        <button
+          type="button"
+          onClick={handleDevAutoSubmit}
+          disabled={submitting || loading}
+          className="fixed bottom-4 right-4 z-50 rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-black shadow-lg hover:bg-yellow-300 disabled:opacity-50"
+        >
+          ⚡ DEV: 全科目オート提出
+        </button>
+      )}
       <Nav />
       <main className="mx-auto max-w-2xl px-4 py-12">
         <div className="card-rpg p-8">

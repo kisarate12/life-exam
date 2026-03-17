@@ -153,6 +153,22 @@ export default function LifeExamNewPage() {
     }
   };
 
+  const handleDevSkip = async () => {
+    if (!user) return;
+    setSubmitting(true);
+    try {
+      const birthYear = getBirthYearFromAge(30);
+      const ageBand = getAgeBandFromBirthYear(birthYear);
+      await supabase.from("life_exam_profiles").upsert(
+        { user_id: user.id, birth_year: birthYear, age_band: ageBand, gender: "男性", prefecture: "東京都", updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+      router.push(`/life-exam/new/exam/${EXAM_V2_SUBJECT_ORDER[0]}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const inputClass = "mt-2 w-full";
   const labelClass = "block text-sm font-medium";
 
@@ -219,6 +235,12 @@ export default function LifeExamNewPage() {
 
             {error && (
               <p className="text-sm text-[var(--rpg-accent-red)]">{error}</p>
+            )}
+            {process.env.NODE_ENV === "development" && (
+              <button type="button" onClick={handleDevSkip} disabled={submitting}
+                className="w-full rounded-lg bg-yellow-400 py-2 text-sm font-bold text-black hover:bg-yellow-300 disabled:opacity-50">
+                ⚡ DEV: サンプル入力してスキップ
+              </button>
             )}
             <div className="flex flex-col flex-wrap gap-3 pt-2 md:flex-row md:items-center md:justify-between">
               <button
