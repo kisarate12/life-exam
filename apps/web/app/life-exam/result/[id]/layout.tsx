@@ -18,7 +18,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
 
-  let characterName = "人生診断の結果";
+  let characterName = "";
   let worldLabel = "";
 
   try {
@@ -29,23 +29,29 @@ export async function generateMetadata({
           apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
         },
-        next: { revalidate: 3600 },
+        cache: "no-store",
       }
     );
     const data = await res.json();
     if (Array.isArray(data) && data[0]) {
-      characterName = data[0].character_name ?? characterName;
+      characterName = data[0].character_name ?? "";
       worldLabel = WORLD_LABEL[data[0].world] ?? "";
     }
   } catch {
     // fallback to generic
   }
 
-  const title = `${characterName} | 人生診断`;
-  const description = worldLabel
+  const title = characterName
+    ? `${characterName} | 人生診断`
+    : "人生診断";
+  const description = worldLabel && characterName
     ? `${worldLabel}の住人「${characterName}」。あなたはどのキャラクター？`
     : "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
-  const ogImageUrl = `${baseUrl}/life-exam/result/${id}/opengraph-image`;
+
+  // キャラクター画像をOGPに直接使用（動的生成なし）
+  const ogImageUrl = characterName
+    ? `${baseUrl}/life-diagnosis/characters/${encodeURIComponent(characterName)}.png`
+    : `${baseUrl}/og.png`;
 
   return {
     title,
@@ -54,7 +60,7 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
+      images: [{ url: ogImageUrl, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
