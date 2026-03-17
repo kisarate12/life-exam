@@ -184,7 +184,7 @@ export default function AnalysisPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ background: "#FDFAF5" }}>
+      <div className="min-h-screen" style={{ background: "#FFFFFF" }}>
         <Nav />
         <main className="mx-auto max-w-2xl px-4 py-20">
           <p className="text-[var(--muted)]">読み込み中...</p>
@@ -195,12 +195,12 @@ export default function AnalysisPage() {
 
   if (error || !attempt) {
     return (
-      <div className="min-h-screen" style={{ background: "#FDFAF5" }}>
+      <div className="min-h-screen" style={{ background: "#FFFFFF" }}>
         <Nav />
         <main className="mx-auto max-w-2xl px-4 py-20">
           <div className="rounded-2xl border border-[var(--card-border)] bg-white p-8">
             <p className="text-[var(--danger)]">{error ?? "結果が見つかりません。"}</p>
-            <Link href="/life-exam" className="mt-4 inline-block text-[#C9A84C] hover:underline">
+            <Link href="/life-exam" className="mt-4 inline-block text-[#F57550] hover:underline">
               トップへ戻る
             </Link>
           </div>
@@ -271,14 +271,15 @@ export default function AnalysisPage() {
   const questItems = rowsForDisplay.filter((r) => ["C", "D", "E", "F"].includes(r.rank));
 
   const cardStyle = {
-    background: "#FDFAF5",
-    border: "1px solid #C9A84C",
+    background: "#FFFFFF",
+    border: "1px solid #E8DDD0",
     borderRadius: 16,
     padding: 24,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
   };
 
   return (
-    <div className="min-h-screen font-diagnosis-card" style={{ background: "#FDFAF5", fontFamily: "var(--font-noto-serif-jp), serif" }}>
+    <div className="min-h-screen font-diagnosis-card" style={{ background: "#FFFFFF", fontFamily: "var(--font-noto-sans-jp), var(--font-noto-serif-jp), sans-serif" }}>
       <Nav />
       <main className="mx-auto max-w-2xl px-4 py-8 sm:py-10">
         <div className="mb-6 flex items-center justify-between">
@@ -287,7 +288,7 @@ export default function AnalysisPage() {
           </h1>
           <Link
             href={`/life-exam/result/${id}`}
-            className="text-sm font-medium text-[#C9A84C] hover:underline"
+            className="text-sm font-medium text-[#F57550] hover:underline"
           >
             結果に戻る
           </Link>
@@ -298,7 +299,7 @@ export default function AnalysisPage() {
           <h2 className="mb-4 text-lg font-bold text-[var(--foreground)]">
             ⚔️ あなたのステータス
           </h2>
-          <div className="divide-y divide-[#E8E0D0]">
+          <div className="divide-y divide-[#E8DDD0]">
             {rowsForDisplay.map((row) => (
               <div
                 key={row.subjectName}
@@ -314,13 +315,13 @@ export default function AnalysisPage() {
                   </span>
                   <div
                     className="min-h-[10px] flex-1 overflow-hidden rounded"
-                    style={{ background: "#E8E0D0" }}
+                    style={{ background: "#E8DDD0" }}
                   >
                     <div
                       className="h-full rounded transition-[width]"
                       style={{
                         width: `${RANK_FILL_PERCENT[row.rank]}%`,
-                        background: "linear-gradient(90deg, #F5D020, #C9A84C)",
+                        background: "linear-gradient(90deg, #FFB84E, #F57550)",
                         minHeight: 10,
                       }}
                     />
@@ -338,7 +339,7 @@ export default function AnalysisPage() {
                 {STAT_COMMENTS[row.subjectName]?.[row.rank] && (
                   <p
                     className="mt-1 text-left italic"
-                    style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 12, color: "#888888", marginTop: 4 }}
+                    style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 12, color: "#9A9290", marginTop: 4 }}
                   >
                     {STAT_COMMENTS[row.subjectName][row.rank]}
                   </p>
@@ -364,13 +365,13 @@ export default function AnalysisPage() {
                     key={row.subjectName}
                     className="rounded-lg bg-white"
                     style={{
-                      borderLeft: `4px solid ${difficulty?.border ?? "#C9A84C"}`,
+                      borderLeft: `4px solid ${difficulty?.border ?? "#F57550"}`,
                       borderRadius: 8,
                       padding: 16,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                     }}
                   >
-                    <div className="flex items-center justify-between gap-2 border-b border-[#E8E0D0] pb-3">
+                    <div className="flex items-center justify-between gap-2 border-b border-[#E8DDD0] pb-3">
                       <p className="font-bold text-[var(--foreground)]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 700 }}>
                         ⚠️ {row.subjectName} ランク{row.rank}
                       </p>
@@ -412,9 +413,9 @@ export default function AnalysisPage() {
             {!evolutionMapInfo.isSummit && evolutionMapInfo.target && (
               <div
                 className="flex flex-col items-center rounded-xl p-4"
-                style={{ border: "2px solid #C9A84C", background: "#FDFAF5" }}
+                style={{ border: "2px solid #F57550", background: "#FFFFFF" }}
               >
-                <p className="mb-2 text-xs font-bold text-[#C9A84C]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>進化先</p>
+                <p className="mb-2 text-xs font-bold text-[#F57550]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>進化先</p>
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0 overflow-hidden rounded-lg bg-white" style={{ width: 80, height: 80 }}>
                     {!imageErrors[`evo-${evolutionMapInfo.target.id}`] ? (
@@ -438,18 +439,18 @@ export default function AnalysisPage() {
 
             {/* 進化条件：矢印（↑）24px ゴールド ＋ 条件テキスト */}
             {!evolutionMapInfo.isSummit && evolutionMapInfo.conditionText && evolutionMapInfo.target && (
-              <p className="text-center font-medium" style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#C9A84C", fontSize: 24 }}>↑</p>
+              <p className="text-center font-medium" style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#F57550", fontSize: 24 }}>↑</p>
             )}
             {!evolutionMapInfo.isSummit && evolutionMapInfo.conditionText && evolutionMapInfo.target && (
-              <p className="text-center text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#C9A84C" }}>
+              <p className="text-center text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif", color: "#F57550" }}>
                 {evolutionMapInfo.conditionText} → {evolutionMapInfo.target.name}に進化
               </p>
             )}
 
             {/* 現在のキャラクター（中央・120px） */}
-            <div className="rounded-xl border border-[#C9A84C]/50 bg-[#F5F0E8] p-4">
+            <div className="rounded-xl border border-[#F57550]/50 bg-[#F7F7F7] p-4">
               {evolutionMapInfo.isSummit && (
-                <p className="mb-2 text-center text-sm font-bold text-[#C9A84C]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>頂点に達しています！</p>
+                <p className="mb-2 text-center text-sm font-bold text-[#F57550]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>頂点に達しています！</p>
               )}
               {evolutionMapInfo.isSummit && (
                 <p className="mb-4 text-center text-sm text-[var(--foreground)]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{SUMMIT_MESSAGE}</p>
@@ -481,7 +482,7 @@ export default function AnalysisPage() {
           <Link
             href={`/life-exam/result/${id}`}
             className="rounded-xl px-6 py-3 font-medium text-white"
-            style={{ background: "#C9A84C" }}
+            style={{ background: "#F57550" }}
           >
             結果ページへ戻る
           </Link>

@@ -1,5 +1,5 @@
 /**
- * ランク表示用の共通定数（バー塗りつぶし率・色）
+ * ランク表示用の共通定数（バー塗りつぶし率・色）— Party Animals パレット
  */
 
 import type { JudgementRank } from "./judgement";
@@ -15,13 +15,13 @@ export const RANK_FILL_PERCENT: Record<JudgementRank, number> = {
   F: 10,
 };
 
-/** ランク → 表示色（hex） */
+/** ランク → 表示色（hex）— Party Animals パレット */
 export const RANK_COLOR: Record<JudgementRank, string> = {
-  S: "#FFD700",
-  A: "#F5C842",
-  B: "#E8B84B",
-  C: "#D4A853",
-  D: "#B8925A",
-  E: "#9C7A61",
-  F: "#806268",
+  S: "#D4960A",
+  A: "#5AACBE",
+  B: "#43756B",
+  C: "#C89A78",
+  D: "#F57550",
+  E: "#9A9290",
+  F: "#706860",
 };

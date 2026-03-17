@@ -1,63 +1,65 @@
 @import "tailwindcss";
 
 /* ============================================
-   白基調×ゴールド×紺色
+   Party Animals テーマ
+   Coral Orange × Goldenrod × Powder Blue
+   白背景 × ライトクリーム × 温かみのあるアクセント
    ============================================ */
 
 :root {
   --theme-bg: #FFFFFF;
   --theme-card: #FFFFFF;
-  --theme-text: #1B2A4A;
-  --theme-text-sub: #6B7A99;
-  --theme-accent-gold: #C9A84C;
-  --theme-gold-bright: #FFD700;
-  --theme-accent-navy: #1B2A4A;
-  --theme-border: #E8E0D0;
-  --theme-border-emphasis: #C9A84C;
-  --theme-scroll-track: #F5F0E8;
-  --theme-scroll-thumb: #C9A84C;
+  --theme-text: #333333;
+  --theme-text-sub: #9A9290;
+  --theme-accent-gold: #F57550;
+  --theme-gold-bright: #F57550;
+  --theme-accent-navy: #FFFFFF;
+  --theme-border: #E8DDD0;
+  --theme-border-emphasis: #F57550;
+  --theme-scroll-track: #F7E9C6;
+  --theme-scroll-thumb: #F8C5A0;
 
   --rpg-bg-page: #FFFFFF;
   --rpg-bg-card: #FFFFFF;
   --rpg-bg-section: #FFFFFF;
-  --rpg-bg-subcard: #F5F0E8;
-  --rpg-border: #E8E0D0;
-  --rpg-border-bright: #C9A84C;
-  --rpg-text-on-dark: #FFE4A0;
-  --rpg-text-on-light: #1B2A4A;
-  --rpg-text: #1B2A4A;
-  --rpg-text-emphasis: #1B2A4A;
-  --rpg-text-sub: #6B7A99;
+  --rpg-bg-subcard: #F7E9C6;
+  --rpg-border: #E8DDD0;
+  --rpg-border-bright: #F57550;
+  --rpg-text-on-dark: #FFFFFF;
+  --rpg-text-on-light: #333333;
+  --rpg-text: #333333;
+  --rpg-text-emphasis: #333333;
+  --rpg-text-sub: #9A9290;
   --rpg-input-bg: #FFFFFF;
-  --rpg-input-border: #E8E0D0;
-  --rpg-scroll-track: #F5F0E8;
-  --rpg-scroll-thumb-start: #C9A84C;
-  --rpg-scroll-thumb-end: #8B6914;
+  --rpg-input-border: #E8DDD0;
+  --rpg-scroll-track: #F7E9C6;
+  --rpg-scroll-thumb-start: #F8C5A0;
+  --rpg-scroll-thumb-end: #F57550;
 
   --background: var(--theme-bg);
   --surface: var(--theme-card);
-  --surface-subtle: #FFFFFF;
+  --surface-subtle: #FBF6EE;
   --foreground: var(--theme-text);
   --muted: var(--theme-text-sub);
   --text-muted-alt: var(--theme-text-sub);
   --text-inverse: #FFFFFF;
   --brand-primary: var(--theme-accent-gold);
-  --brand-primary-hover: #8B6914;
-  --brand-primary-soft: rgba(201, 168, 76, 0.15);
+  --brand-primary-hover: #E06040;
+  --brand-primary-soft: rgba(245, 117, 80, 0.1);
   --accent: var(--theme-accent-gold);
-  --accent-hover: #8B6914;
-  --accent-light: rgba(201, 168, 76, 0.2);
+  --accent-hover: #E06040;
+  --accent-light: rgba(245, 117, 80, 0.08);
   --card: var(--theme-card);
   --card-border: var(--theme-border);
   --border-strong: var(--theme-border-emphasis);
-  --danger: #CC3300;
-  --danger-hover: #991A00;
-  --success: #19B35A;
-  --warning: #C9A84C;
-  --info: #4A90D9;
-  --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-cta: 0 4px 12px rgba(201, 168, 76, 0.4);
+  --danger: #E53935;
+  --danger-hover: #C62828;
+  --success: #43756B;
+  --warning: #FFB84E;
+  --info: #90C6CF;
+  --shadow-panel: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-cta: 0 4px 16px rgba(245, 117, 80, 0.25);
   --elevation-panel: var(--shadow-panel);
   --elevation-card: var(--shadow-card);
   --elevation-cta: var(--shadow-cta);
@@ -74,13 +76,13 @@
   --radius-card: 16px;
   --radius: 16px;
   --radius-button: 8px;
-  --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   --shadow-md: var(--shadow-card);
   --scale-agree: var(--success);
-  --scale-agree-hover: #149a4d;
+  --scale-agree-hover: #365F56;
   --scale-neutral: var(--theme-text-sub);
   --scale-disagree: var(--danger);
-  --scale-disagree-hover: #991A00;
+  --scale-disagree-hover: #C62828;
 }
 
 * {
@@ -94,8 +96,8 @@ html {
 
 body {
   background: #FFFFFF;
-  color: #1B2A4A;
-  font-family: var(--font-noto-serif-jp), "Noto Serif JP", serif;
+  color: #333333;
+  font-family: var(--font-noto-sans-jp), "Noto Sans JP", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   font-size: var(--text-body);
   line-height: var(--leading-normal);
@@ -108,14 +110,14 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--theme-scroll-track);
+  background: #F7E9C6;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--theme-scroll-thumb);
+  background: #F8C5A0;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8B6914;
+  background: #F57550;
 }
 
 /* ========== Card ========== */
@@ -123,68 +125,69 @@ body {
 .card-panel,
 .card-tokens {
   background: #FFFFFF;
-  border: 1px solid #E8E0D0;
+  border: 1px solid #E8DDD0;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  color: #1B2A4A;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  color: #333333;
 }
 
 .card-rpg-sub {
-  background: #FFFFFF;
-  border: 1px solid #E8E0D0;
+  background: #FBF6EE;
+  border: 1px solid #E8DDD0;
   border-radius: 8px;
-  color: #1B2A4A;
+  color: #333333;
 }
 
 .card-rpg,
 .card-panel,
 .card-tokens {
-  color: #1B2A4A;
+  color: #333333;
 }
 
 /* カードタイトル・セクションヘッダー */
 .card-rpg-title,
 .section-header {
-  color: #1B2A4A;
+  color: #333333;
   font-weight: 700;
-  border-left: 4px solid #C9A84C;
+  border-left: 4px solid #F57550;
   padding-left: 12px;
   border-bottom: none;
   background: transparent;
 }
 
-/* ========== Buttons ========== */
+/* ========== Buttons — Coral CTA ========== */
 .btn-rpg-main {
-  background: linear-gradient(145deg, #C9A84C, #8B6914);
+  background: #F57550;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   color: #FFFFFF;
   font-weight: 700;
   font-size: 16px;
-  padding: 14px 32px;
-  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.4);
+  padding: 14px 40px;
+  box-shadow: 0 4px 16px rgba(245, 117, 80, 0.3);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 .btn-rpg-main:hover:not(:disabled) {
-  filter: brightness(1.1);
+  background: #E06040;
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 117, 80, 0.35);
 }
 .btn-rpg-main:active:not(:disabled) {
   transform: translateY(0);
 }
 .btn-rpg-main:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-rpg-sub {
   background: #FFFFFF;
-  border: 2px solid #1B2A4A;
-  border-radius: 8px;
-  color: #1B2A4A;
+  border: 2px solid #E8DDD0;
+  border-radius: 999px;
+  color: #333333;
   font-weight: 600;
-  padding: 12px 24px;
+  padding: 12px 28px;
   transition: all 0.2s ease;
   cursor: pointer;
   text-decoration: none;
@@ -193,7 +196,8 @@ body {
   justify-content: center;
 }
 .btn-rpg-sub:hover {
-  background: #F5F0E8;
+  border-color: #F57550;
+  color: #F57550;
 }
 
 /* ========== Form ========== */
@@ -204,9 +208,9 @@ input[type="number"],
 select,
 textarea {
   background: #FFFFFF !important;
-  border: 2px solid #E8E0D0 !important;
+  border: 2px solid #E8DDD0 !important;
   border-radius: 8px !important;
-  color: #1B2A4A !important;
+  color: #333333 !important;
   padding: 12px 16px !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -214,26 +218,26 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none !important;
-  border-color: #C9A84C !important;
-  box-shadow: 0 0 8px rgba(201, 168, 76, 0.2) !important;
+  border-color: #F57550 !important;
+  box-shadow: 0 0 0 3px rgba(245, 117, 80, 0.15) !important;
 }
 input::placeholder,
 textarea::placeholder {
-  color: var(--theme-text-sub);
+  color: #C0B8B0;
 }
 select option {
   background: #FFFFFF;
-  color: #1B2A4A;
+  color: #333333;
 }
 
 /* ========== Typography ========== */
 h1, h2, h3 {
-  color: #1B2A4A;
+  color: #333333;
   font-weight: 700;
 }
 
 p {
-  color: #1B2A4A;
+  color: #333333;
   line-height: 1.8;
 }
 
@@ -241,74 +245,74 @@ p {
   color: var(--theme-text-sub);
 }
 .text-emphasis {
-  color: #1B2A4A;
+  color: #333333;
   font-weight: 700;
 }
 
-/* ========== Rank badges (S~F) ========== */
+/* ========== Rank badges — パレット配色 ========== */
 .rank-badge-s {
-  background: #FFD700 !important;
-  color: #1B2A4A !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  background: #FFB84E !important;
+  color: #333333 !important;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 .rank-badge-a {
-  background: #4A90D9 !important;
+  background: #90C6CF !important;
   color: #FFFFFF !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 .rank-badge-b {
-  background: #C9A84C !important;
+  background: #43756B !important;
   color: #FFFFFF !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 .rank-badge-c {
-  background: #A0A0A0 !important;
-  color: #FFFFFF !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  background: #F8C5A0 !important;
+  color: #333333 !important;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 .rank-badge-d {
-  background: #CD7F32 !important;
+  background: #F57550 !important;
   color: #FFFFFF !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 .rank-badge-e {
-  background: #6B6B6B !important;
+  background: #B0A8A0 !important;
   color: #FFFFFF !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 .rank-badge-f {
-  background: #3C3C3C !important;
+  background: #706860 !important;
   color: #FFFFFF !important;
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 700;
 }
 
-.grade-s { color: #1B2A4A; font-weight: 700; }
-.grade-a { color: #4A90D9; font-weight: 700; }
-.grade-b { color: #8B6914; font-weight: 700; }
-.grade-c { color: #A0A0A0; font-weight: 700; }
-.grade-d { color: #CD7F32; font-weight: 700; }
-.grade-e { color: #6B6B6B; font-weight: 700; }
-.grade-f { color: #3C3C3C; font-weight: 700; }
+.grade-s { color: #D4960A; font-weight: 700; }
+.grade-a { color: #5AACBE; font-weight: 700; }
+.grade-b { color: #43756B; font-weight: 700; }
+.grade-c { color: #C89A78; font-weight: 700; }
+.grade-d { color: #F57550; font-weight: 700; }
+.grade-e { color: #9A9290; font-weight: 700; }
+.grade-f { color: #706860; font-weight: 700; }
 
 /* ========== Separator ========== */
 .separator-rpg {
   border: none;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #C9A84C, transparent);
+  background: linear-gradient(90deg, transparent, #F8C5A0, #F57550, #F8C5A0, transparent);
   margin: 16px 0;
 }
 
@@ -350,7 +354,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [tabindex="0"]:focus-visible {
-  outline: 2px solid #C9A84C;
+  outline: 2px solid #F57550;
   outline-offset: 2px;
 }
 
@@ -359,23 +363,37 @@ select:focus-visible,
 }
 
 .table-row-hover:hover {
-  background: rgba(201, 168, 76, 0.06);
+  background: rgba(245, 117, 80, 0.04);
 }
 
-/* トップページ：body のみスクロールで scroll-snap（二重スクロールバー防止） */
-/* proximity にするとフッターまで下げたときにスナップで少し上に戻るのを防げる */
+/* トップページ scroll-snap */
 html.life-exam-top-scroll,
 html.life-exam-top-scroll body {
   scroll-snap-type: y proximity;
   scroll-behavior: smooth;
 }
 @media (min-width: 768px) {
-  html.life-exam-top-scroll .life-exam-top-page section {
+  html.life-exam-top-scroll .life-exam-top-page .top-page-section {
     scroll-snap-align: start;
   }
 }
 
-/* スクロール案内のふわふわアニメーション */
+/* LP コンテンツセクション fade-in */
+.life-exam-top-page .lp-content-section .fade-in-content {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* キャラギャラリーカード */
+.char-gallery-card {
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.char-gallery-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* スクロール案内アニメーション */
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(8px); }
@@ -384,17 +402,13 @@ html.life-exam-top-scroll body {
   animation: bounce 2s ease-in-out infinite;
 }
 
-/* ============================================
-   トップ画面（life-exam fullpage）専用
-   全体の h2/p ルールと分離し、世界カード内のみ白文字に強制
-   ============================================ */
-/* 薄暗いコンテナの上に世界名を白文字で表示 */
+/* 世界セクション白文字 */
 .life-exam-top-page .world-card .world-card-title {
   color: #ffffff !important;
   font-weight: 700 !important;
 }
 
-/* Nav ロゴの発色補正 */
+/* Nav ロゴ */
 .nav-logo-img {
-  filter: saturate(1.25) contrast(1.1) brightness(1.05);
+  filter: none;
 }

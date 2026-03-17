@@ -44,10 +44,10 @@ export function StatusRadarChart({ rows }: Props) {
     datasets: [
       {
         data,
-        backgroundColor: "rgba(201, 168, 76, 0.3)",
-        borderColor: "rgba(201, 168, 76, 1)",
+        backgroundColor: "rgba(245, 117, 80, 0.15)",
+        borderColor: "rgba(245, 117, 80, 1)",
         borderWidth: 2,
-        pointBackgroundColor: "#C9A84C",
+        pointBackgroundColor: "#F57550",
         pointRadius: 5,
       },
     ],
@@ -66,14 +66,14 @@ export function StatusRadarChart({ rows }: Props) {
           display: false,
         },
         grid: {
-          color: "rgba(139, 105, 20, 0.2)",
+          color: "#E8DDD0",
         },
         pointLabels: {
           font: {
-            family: "var(--font-noto-serif-jp), Noto Serif JP, serif",
+            family: "var(--font-noto-sans-jp), Noto Sans JP, sans-serif",
             size: 13,
           },
-          color: "#1B2A4A",
+          color: "#333333",
         },
       },
     },
@@ -93,7 +93,7 @@ export function StatusRadarChart({ rows }: Props) {
         backgroundColor: "#FFFFFF",
         padding: 8,
         borderRadius: 8,
-        border: "1px solid #E8E0D0",
+        border: "1px solid #E8DDD0",
       }}
     >
       <Radar data={chartData} options={options} />

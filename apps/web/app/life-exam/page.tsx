@@ -6,56 +6,75 @@ import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import Nav from "../components/Nav";
 
-/** 世界背景画像（public/top-worlds/ または public/images/ に配置） */
-const WORLD_BG = {
-  sky: "/top-worlds/sky.png",
-  sea: "/top-worlds/sea.png",
-  ground: "/top-worlds/ground.png",
-  underworld: "/top-worlds/underworld.png",
-};
+const CHARACTER_GALLERY = [
+  {
+    world: "空の世界",
+    color: "#4A90D9",
+    bg: "rgba(74,144,217,0.08)",
+    chars: [
+      { name: "アマテラスオオミカミ", desc: "全資本が揃った完全なる自由人" },
+      { name: "大将軍", desc: "戦場で全てを勝ち取ったエリート" },
+      { name: "獅子", desc: "お金と時間はあるが孤独を抱える王" },
+      { name: "カイコ", desc: "豊かな繭の中で世界から切り離された存在" },
+    ],
+  },
+  {
+    world: "海の世界",
+    color: "#1B6B93",
+    bg: "rgba(27,107,147,0.08)",
+    chars: [
+      { name: "ツクヨミ", desc: "時間の自由を手にした月の住人" },
+      { name: "下流貴族", desc: "財布は薄いが心は豊かな自由人" },
+      { name: "亀", desc: "のんびり進むが小さな欠けを抱える" },
+      { name: "カタツムリ", desc: "時間だけはたっぷり、でもそれだけ" },
+    ],
+  },
+  {
+    world: "地上の世界",
+    color: "#2D7D2D",
+    bg: "rgba(45,125,45,0.08)",
+    chars: [
+      { name: "ドワーフの王", desc: "時間さえあれば完璧な王" },
+      { name: "騎士", desc: "カレンダーに空白がない勇者" },
+      { name: "タヌキ", desc: "器用に生きて大切なものとすり替わった" },
+      { name: "フンコロガシ", desc: "お金だけ積み上がり他が消えた" },
+    ],
+  },
+  {
+    world: "闇の世界",
+    color: "#6B3FA0",
+    bg: "rgba(107,63,160,0.08)",
+    chars: [
+      { name: "ゴブリンキング", desc: "貧しくても今日も誰かと笑える" },
+      { name: "農奴", desc: "懸命に働くが報われない誠実な者" },
+      { name: "ハイエナ", desc: "厳しい状況でも粘り強く生き延びる" },
+      { name: "蚊", desc: "全てが底をついた、ここからがスタート" },
+    ],
+  },
+];
 
-/** 各世界のキャラクター画像（public/life-diagnosis/characters/） */
-const WORLD_CHARS = {
-  sky: ["アマテラス", "大将軍", "獅子", "カイコ"],
-  sea: ["ツクヨミ", "下流貴族", "亀", "カタツムリ"],
-  ground: ["ドワーフの王", "騎士", "タヌキ", "フンコロガシ"],
-  underworld: ["ゴブリンキング", "農奴", "ハイエナ", "蚊"],
-} as const;
+const LP_SECTION_IDS = ["section-1", "section-about", "section-characters", "section-features", "section-recommend", "section-final-cta"] as const;
 
-const SECTION_IDS = ["section-1", "section-2", "section-3", "section-4", "section-5", "section-6"] as const;
-
-/** 表示されたセクションの背景のみ読み込む（初期負荷軽減） */
-const WORLD_SECTION_IDS = ["section-2", "section-3", "section-4", "section-5"] as const;
+function CtaButton({ href, className = "" }: { href: string; className?: string }) {
+  return (
+    <Link
+      href={href}
+      className={`inline-block rounded-xl font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:opacity-95 ${className}`}
+      style={{
+        background: "linear-gradient(145deg, var(--theme-accent-gold), var(--brand-primary-hover))",
+        padding: "18px 48px",
+        fontSize: 18,
+        boxShadow: "0 4px 20px rgba(245,117,80,0.25)",
+      }}
+    >
+      診断を受ける
+    </Link>
+  );
+}
 
 export default function LifeExamPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [visibleBgs, setVisibleBgs] = useState<Record<string, boolean>>({});
-  /** 初回表示ではヒーロー＋CTAのみ描画し、アイドル後に世界セクションを描画して初期負荷を削減 */
-  const [showWorldSections, setShowWorldSections] = useState(false);
-
-  useEffect(() => {
-    const id = setTimeout(() => setShowWorldSections(true), 0);
-    return () => clearTimeout(id);
-  }, []);
-
-  useEffect(() => {
-    if (!showWorldSections) return;
-    const sections = WORLD_SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
-    if (sections.length === 0) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const id = (entry.target as HTMLElement).id;
-          setVisibleBgs((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
-        }
-      },
-      { root: null, rootMargin: "200px 0px", threshold: 0 }
-    );
-    sections.forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
-  }, [loading, showWorldSections]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -90,9 +109,11 @@ export default function LifeExamPage() {
   }, []);
 
   useEffect(() => {
-    if (loading || !showWorldSections) return;
-    const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
-    if (sections.length === 0) return;
+    if (loading) return;
+    const allSections = LP_SECTION_IDS
+      .map((id) => document.getElementById(id))
+      .filter(Boolean) as HTMLElement[];
+    if (allSections.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -106,181 +127,297 @@ export default function LifeExamPage() {
           });
         }
       },
-      { root: null, rootMargin: "-20% 0px", threshold: 0 }
+      { root: null, rootMargin: "-10% 0px", threshold: 0 }
     );
-    sections.forEach((s) => observer.observe(s));
+    allSections.forEach((s) => observer.observe(s));
     return () => observer.disconnect();
-  }, [loading, showWorldSections]);
+  }, [loading]);
 
   const startHref = "/life-exam/new";
 
   return (
-    <div className="life-exam-top-page relative z-10 bg-white">
+    <div className="life-exam-top-page relative z-10">
       <Nav />
-      {/* 1本の長いページで body のみスクロール → スクロールバー1本 */}
-      {/* セクション①：ヒーロー（白背景で文字を見やすく） */}
+
+      {/* ======================================================
+          セクション①：ヒーロー
+          ====================================================== */}
       <section id="section-1" className="top-page-section section min-h-screen bg-white pt-[73px]">
-          <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
-            <div className="fade-in-content">
-              <p
-                className="font-bold leading-tight text-[var(--theme-text)]"
-                style={{ fontSize: "clamp(26px, 5.5vw, 44px)" }}
-              >
-                あなたの人生は
-                <br />
-                どの世界の住人？
-              </p>
-            </div>
-            <div
-              className="fade-in-content mt-6 text-[var(--theme-text)] md:mt-8"
-              style={{ fontSize: "clamp(14px, 2.5vw, 17px)", lineHeight: 1.7, opacity: 0.95 }}
-            >
-              <p>資産・収入・時間・人間関係・健康</p>
-              <p className="mt-0.5">5つの資本から</p>
-              <p className="mt-3 font-semibold">あなたの人生ランクを診断</p>
-            </div>
-            <Link
-              href={startHref}
-              className="fade-in-content mt-10 rounded-xl font-bold text-white shadow-lg transition hover:opacity-95 hover:-translate-y-0.5"
-              style={{
-                background: "linear-gradient(145deg, var(--theme-accent-gold), var(--brand-primary-hover))",
-                padding: "18px 48px",
-                fontSize: 18,
-                boxShadow: "0 4px 20px rgba(201,168,76,0.35)",
-              }}
-            >
-              診断を受ける
-            </Link>
+        <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
+          <div className="fade-in-content">
             <p
-              className="animate-bounce-soft absolute bottom-10 right-6 text-[var(--theme-text-sub)] md:right-10"
-              style={{ fontSize: 15 }}
+              className="font-bold leading-tight text-[var(--theme-text)]"
+              style={{ fontSize: "clamp(26px, 5.5vw, 44px)" }}
             >
-              ↓ スクロールして世界を見る
+              あなたの人生は
+              <br />
+              どの世界の住人？
             </p>
           </div>
-      </section>
-
-      {/* 世界セクションは初回描画後に表示（初期負荷・離脱防止） */}
-      {!showWorldSections ? (
-        <div aria-hidden className="min-h-[400vh]" style={{ minHeight: "400dvh" }} />
-      ) : (
-        <>
-      {/* セクション②：空の世界 */}
-      <section id="section-2" className="top-page-section section relative min-h-screen">
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: visibleBgs["section-2"] ? `url(${WORLD_BG.sky})` : undefined }}
-          />
-          <div className="absolute inset-0 bg-black/55" />
-          <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
-            <div className="world-card fade-in-content rounded-2xl border border-white/20 px-6 py-4 shadow-xl md:px-10 md:py-5" style={{ background: "rgba(12,18,32,0.55)" }}>
-              <h2 className="world-card-title text-center" style={{ fontSize: "clamp(26px, 4vw, 44px)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-                空の世界
-              </h2>
-            </div>
-            <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
-              {WORLD_CHARS.sky.map((name) => (
-                <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
-                </div>
-              ))}
-            </div>
+            className="fade-in-content mt-6 text-[var(--theme-text)] md:mt-8"
+            style={{ fontSize: "clamp(14px, 2.5vw, 17px)", lineHeight: 1.7, opacity: 0.95 }}
+          >
+            <p>資産・収入・時間・人間関係・健康</p>
+            <p className="mt-0.5">5つの資本から</p>
+            <p className="mt-3 font-semibold">あなたの人生ランクを診断</p>
           </div>
+
+          {/* バッジ: 3分 / 25問 / 無料 */}
+          <div className="fade-in-content mt-8 flex items-center gap-3">
+            {["3分", "25問", "無料"].map((label) => (
+              <span
+                key={label}
+                className="rounded-full border px-4 py-1.5 text-sm font-semibold"
+                style={{
+                  borderColor: "var(--theme-accent-gold)",
+                  color: "var(--theme-accent-gold)",
+                  background: "rgba(245,117,80,0.08)",
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <CtaButton href={startHref} className="fade-in-content mt-8" />
+
+          <p
+            className="animate-bounce-soft absolute bottom-10 right-6 text-[var(--theme-text-sub)] md:right-10"
+            style={{ fontSize: 15 }}
+          >
+            ↓ スクロールして詳しく見る
+          </p>
+        </div>
       </section>
 
-      {/* セクション③：海の世界 */}
-      <section id="section-3" className="top-page-section section relative min-h-screen">
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: visibleBgs["section-3"] ? `url(${WORLD_BG.sea})` : undefined }}
-          />
-          <div className="absolute inset-0 bg-[rgba(0,15,40,0.6)]" />
-          <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
-            <div className="world-card fade-in-content rounded-2xl border border-white/20 px-6 py-4 shadow-xl md:px-10 md:py-5" style={{ background: "rgba(8,18,35,0.55)" }}>
-              <h2 className="world-card-title text-center" style={{ fontSize: "clamp(26px, 4vw, 44px)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-                海の世界
-              </h2>
-            </div>
-            <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
-              {WORLD_CHARS.sea.map((name) => (
-                <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* ======================================================
+          セクション：人生診断とは？
+          ====================================================== */}
+      <section id="section-about" className="lp-content-section bg-[#F7E9C6] py-20 md:py-28">
+        <div className="mx-auto max-w-2xl px-6 text-center">
+          <h2
+            className="fade-in-content font-bold text-[var(--theme-text)]"
+            style={{ fontSize: "clamp(22px, 4vw, 32px)" }}
+          >
+            人生診断とは？
+          </h2>
+          <div className="fade-in-content mx-auto mt-4 h-0.5 w-12" style={{ background: "var(--theme-accent-gold)" }} />
+          <p
+            className="fade-in-content mt-8 leading-relaxed text-[var(--theme-text)]"
+            style={{ fontSize: "clamp(14px, 2.5vw, 16px)", lineHeight: 2 }}
+          >
+            人生の豊かさは、お金だけでは測れない。
+            <br />
+            <strong>資産・収入・時間・人間関係・健康</strong>の
+            <br className="md:hidden" />
+            5つの資本を数値化し、
+            <br />
+            あなたの人生を<strong>偏差値</strong>と<strong>ランク</strong>で可視化します。
+            <br />
+            <br className="hidden md:block" />
+            同世代・全国の中で自分がどの位置にいるのか。
+            <br />
+            それを知ることが、次の一歩につながります。
+          </p>
+        </div>
       </section>
 
-      {/* セクション④：地上の世界 */}
-      <section id="section-4" className="top-page-section section relative min-h-screen">
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: visibleBgs["section-4"] ? `url(${WORLD_BG.ground})` : undefined }}
-          />
-          <div className="absolute inset-0 bg-[rgba(0,25,0,0.58)]" />
-          <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
-            <div className="world-card fade-in-content rounded-2xl border border-white/20 px-6 py-4 shadow-xl md:px-10 md:py-5" style={{ background: "rgba(10,22,12,0.55)" }}>
-              <h2 className="world-card-title text-center" style={{ fontSize: "clamp(26px, 4vw, 44px)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-                地上の世界
-              </h2>
-            </div>
-            <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
-              {WORLD_CHARS.ground.map((name) => (
-                <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
+      {/* ======================================================
+          セクション：キャラクター紹介（16タイプ）
+          ====================================================== */}
+      <section id="section-characters" className="lp-content-section bg-white py-20 md:py-28">
+        <div className="mx-auto max-w-5xl px-4">
+          <h2
+            className="fade-in-content text-center font-bold text-[var(--theme-text)]"
+            style={{ fontSize: "clamp(22px, 4vw, 32px)" }}
+          >
+            16タイプのキャラクター
+          </h2>
+          <div className="fade-in-content mx-auto mt-4 h-0.5 w-12" style={{ background: "var(--theme-accent-gold)" }} />
+          <p className="fade-in-content mt-4 text-center text-[var(--theme-text-sub)]" style={{ fontSize: 15 }}>
+            あなたはどのキャラクター？
+          </p>
+
+          <div className="mt-12 space-y-10">
+            {CHARACTER_GALLERY.map((group) => (
+              <div key={group.world} className="fade-in-content">
+                <div className="mb-4 flex items-center gap-3">
+                  <span
+                    className="inline-block rounded-full px-4 py-1 text-xs font-bold text-white"
+                    style={{ background: group.color }}
+                  >
+                    {group.world}
+                  </span>
+                  <div className="h-px flex-1" style={{ background: `${group.color}30` }} />
                 </div>
-              ))}
-            </div>
+
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+                  {group.chars.map((char) => (
+                    <div
+                      key={char.name}
+                      className="char-gallery-card flex flex-col items-center rounded-2xl border p-4 text-center transition-shadow hover:shadow-md"
+                      style={{
+                        borderColor: `${group.color}25`,
+                        background: group.bg,
+                      }}
+                    >
+                      <div
+                        className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 shadow-sm md:h-24 md:w-24"
+                        style={{ borderColor: `${group.color}50`, background: "rgba(255,255,255,0.7)" }}
+                      >
+                        <img
+                          src={`/life-diagnosis/characters/${encodeURIComponent(char.name)}.png`}
+                          alt={char.name}
+                          className="h-full w-full object-contain"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p
+                        className="mt-3 font-bold text-[var(--theme-text)]"
+                        style={{ fontSize: "clamp(12px, 2.5vw, 15px)" }}
+                      >
+                        {char.name}
+                      </p>
+                      <p
+                        className="mt-1 text-[var(--theme-text-sub)]"
+                        style={{ fontSize: "clamp(10px, 2vw, 12px)", lineHeight: 1.5 }}
+                      >
+                        {char.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
+
+          <div className="fade-in-content mt-12 text-center">
+            <CtaButton href={startHref} />
+          </div>
+        </div>
       </section>
 
-      {/* セクション⑤：闇の世界 */}
-      <section id="section-5" className="top-page-section section relative min-h-screen">
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: visibleBgs["section-5"] ? `url(${WORLD_BG.underworld})` : undefined }}
-          />
-          <div className="absolute inset-0 bg-[rgba(18,0,35,0.62)]" />
-          <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12">
-            <div className="world-card fade-in-content rounded-2xl border border-white/20 px-6 py-4 shadow-xl md:px-10 md:py-5" style={{ background: "rgba(18,8,28,0.55)" }}>
-              <h2 className="world-card-title text-center" style={{ fontSize: "clamp(26px, 4vw, 44px)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
-                闇の世界
-              </h2>
-            </div>
-            <div className="fade-in-content flex flex-wrap justify-center gap-4 md:gap-6">
-              {WORLD_CHARS.underworld.map((name) => (
-                <div key={name} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/25 shadow-lg md:h-[120px] md:w-[120px]" style={{ background: "rgba(0,0,0,0.4)" }}>
-                  <img src={`/life-diagnosis/characters/${encodeURIComponent(name)}.png`} alt="" className="h-full w-full object-contain" loading="lazy" />
-                </div>
-              ))}
-            </div>
-          </div>
-      </section>
-        </>
-      )}
+      {/* ======================================================
+          セクション：診断でわかること
+          ====================================================== */}
+      <section id="section-features" className="lp-content-section bg-[#F7E9C6] py-20 md:py-28">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2
+            className="fade-in-content text-center font-bold text-[var(--theme-text)]"
+            style={{ fontSize: "clamp(22px, 4vw, 32px)" }}
+          >
+            診断でわかること
+          </h2>
+          <div className="fade-in-content mx-auto mt-4 h-0.5 w-12" style={{ background: "var(--theme-accent-gold)" }} />
 
-      {/* セクション⑥：最終CTA（白背景で文字を見やすく） */}
-      <section id="section-6" className="top-page-section section min-h-screen bg-white">
-          <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-            <p className="fade-in-content font-bold text-[var(--theme-text)]" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
-              あなたはどの世界の住人？
-            </p>
-            <p className="fade-in-content mt-5 text-[var(--theme-text)]" style={{ fontSize: 18, lineHeight: 1.7, opacity: 0.9 }}>
-              今すぐ診断して、あなたの人生ランクを確かめよう
-            </p>
-            <Link
-              href={startHref}
-              className="fade-in-content mt-10 inline-block rounded-xl font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
-              style={{
-                background: "linear-gradient(145deg, var(--theme-accent-gold), var(--brand-primary-hover))",
-                padding: "18px 52px",
-                fontSize: 18,
-                boxShadow: "0 4px 20px rgba(201,168,76,0.35)",
-              }}
-            >
-              診断を受ける
-            </Link>
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            {[
+              {
+                title: "5科目の偏差値",
+                desc: "資産・収入・時間・人間関係・健康をそれぞれスコア化。どの資本が強く、どこに伸びしろがあるかが一目でわかる。",
+                accent: "#F57550",
+              },
+              {
+                title: "全国・同世代ランキング",
+                desc: "全受験者の中であなたは何位？同世代と比較した順位もわかる。",
+                accent: "#FFB84E",
+              },
+              {
+                title: "あなたの世界とキャラクター",
+                desc: "4つの世界 × 4キャラクター = 全16タイプ。あなたの人生パターンをキャラクターで表現。",
+                accent: "#90C6CF",
+              },
+              {
+                title: "改善クエスト",
+                desc: "各科目の弱点に応じた具体的な改善アクションを提案。何から始めればいいかが見える。",
+                accent: "#43756B",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="fade-in-content overflow-hidden rounded-2xl bg-white p-6 shadow-sm"
+                style={{ borderBottom: `4px solid ${item.accent}` }}
+              >
+                <h3 className="text-lg font-bold text-[var(--theme-text)]">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--theme-text-sub)]">{item.desc}</p>
+              </div>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* ======================================================
+          セクション：こんな方におすすめ
+          ====================================================== */}
+      <section id="section-recommend" className="lp-content-section bg-[#F7E9C6] py-20 md:py-28">
+        <div className="mx-auto max-w-2xl px-6">
+          <h2
+            className="fade-in-content text-center font-bold text-[var(--theme-text)]"
+            style={{ fontSize: "clamp(22px, 4vw, 32px)" }}
+          >
+            こんな方におすすめ
+          </h2>
+          <div className="fade-in-content mx-auto mt-4 h-0.5 w-12" style={{ background: "var(--theme-accent-gold)" }} />
+
+          <div className="mt-10 space-y-5">
+            {[
+              "自分の人生を客観的に数値化したい方",
+              "同世代と比べて自分がどの位置にいるか知りたい方",
+              "お金だけでなく、時間や健康も含めた「本当の豊かさ」を知りたい方",
+              "何を優先的に改善すべきか、ヒントがほしい方",
+              "診断結果をSNSでシェアして友達と比べたい方",
+            ].map((text) => (
+              <div
+                key={text}
+                className="fade-in-content flex items-start gap-3 rounded-xl border border-[var(--theme-border)] bg-white px-5 py-4"
+              >
+                <span className="mt-0.5 text-lg" style={{ color: "var(--theme-accent-gold)" }}>✓</span>
+                <p className="text-[15px] font-medium text-[var(--theme-text)]">{text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="fade-in-content mt-12 text-center">
+            <CtaButton href={startHref} />
+          </div>
+        </div>
+      </section>
+
+      {/* ======================================================
+          最終CTA
+          ====================================================== */}
+      <section id="section-final-cta" className="top-page-section section min-h-screen bg-white">
+        <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+          <p className="fade-in-content font-bold text-[var(--theme-text)]" style={{ fontSize: "clamp(28px, 4vw, 40px)" }}>
+            あなたはどの世界の住人？
+          </p>
+          <p className="fade-in-content mt-5 text-[var(--theme-text)]" style={{ fontSize: 18, lineHeight: 1.7, opacity: 0.9 }}>
+            今すぐ診断して、あなたの人生ランクを確かめよう
+          </p>
+
+          <div className="fade-in-content mt-6 flex items-center gap-3">
+            {["3分", "25問", "無料"].map((label) => (
+              <span
+                key={label}
+                className="rounded-full border px-4 py-1.5 text-sm font-semibold"
+                style={{
+                  borderColor: "var(--theme-accent-gold)",
+                  color: "var(--theme-accent-gold)",
+                  background: "rgba(245,117,80,0.08)",
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <CtaButton href={startHref} className="fade-in-content mt-8" />
+
+          <p className="fade-in-content mt-6 text-sm text-[var(--theme-text-sub)]">
+            年齢・職業を問わず、すべての人に。
+          </p>
+        </div>
       </section>
     </div>
   );
