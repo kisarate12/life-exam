@@ -22,9 +22,23 @@ async function loadJapaneseFont(): Promise<ArrayBuffer | null> {
         },
       }
     ).then((r) => r.text());
-    const match = css.match(/src: url\(([^)]+)\) format\('woff2'\)/);
-    if (!match?.[1]) return null;
-    return fetch(match[1]).then((r) => r.arrayBuffer());
+
+    // /* japanese */ ブロックを優先して取得
+    const blocks = css.split("@font-face");
+    for (const block of blocks) {
+      if (block.includes("japanese")) {
+        const match = block.match(/src: url\(([^)]+)\)/);
+        if (match?.[1]) {
+          return fetch(match[1]).then((r) => r.arrayBuffer());
+        }
+      }
+    }
+    // フォールバック：最初のURLを使用
+    const fallback = css.match(/src: url\(([^)]+)\)/);
+    if (fallback?.[1]) {
+      return fetch(fallback[1]).then((r) => r.arrayBuffer());
+    }
+    return null;
   } catch {
     return null;
   }
@@ -58,7 +72,7 @@ export default async function OgImage({
       totalScore = data[0].total_score ?? null;
     }
   } catch {
-    // fallback to generic
+    // fallback
   }
 
   const worldCfg = WORLD_CONFIG[worldShort] ?? {
@@ -68,6 +82,7 @@ export default async function OgImage({
   };
 
   const fontData = await loadJapaneseFont();
+  const fontFamily = fontData ? "'Noto Sans JP', sans-serif" : "sans-serif";
 
   return new ImageResponse(
     (
@@ -79,14 +94,14 @@ export default async function OgImage({
           flexDirection: "column",
           background: `linear-gradient(145deg, ${worldCfg.bg} 0%, #080810 100%)`,
           padding: "52px 72px",
-          fontFamily: fontData ? "'Noto Sans JP'" : "sans-serif",
+          fontFamily,
           position: "relative",
-          overflow: "hidden",
         }}
       >
         {/* Top accent line */}
         <div
           style={{
+            display: "flex",
             position: "absolute",
             top: 0,
             left: 0,
@@ -99,6 +114,7 @@ export default async function OgImage({
         {/* Decorative circle */}
         <div
           style={{
+            display: "flex",
             position: "absolute",
             right: -120,
             top: -120,
@@ -173,9 +189,7 @@ export default async function OgImage({
                 marginTop: 20,
               }}
             >
-              <span
-                style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}
-              >
+              <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
                 総合スコア
               </span>
               <span
@@ -187,9 +201,7 @@ export default async function OgImage({
               >
                 {totalScore}
               </span>
-              <span
-                style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}
-              >
+              <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)" }}>
                 点
               </span>
             </div>
