@@ -31,6 +31,15 @@ export interface RankingEntry {
 }
 const STAT_ORDER_ANALYSIS = ["資産", "収入", "時間", "人間関係", "健康"] as const;
 
+const LOADING_MESSAGES = [
+  "あなたの人生を分析中...",
+  "5つの資本を計算しています...",
+  "全国データと照合中...",
+  "偏差値を算出中...",
+  "あなたのキャラクターを判定中...",
+  "もうすぐ結果が出ます...",
+];
+
 /** ステータスコメント（全ランクS〜F。C以下は一言評価のみ） */
 const STAT_COMMENTS: Record<string, Record<JudgementRank, string>> = {
   資産: {
@@ -472,6 +481,17 @@ export default function LifeExamResultPage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [msgIndex, setMsgIndex] = useState(0);
+  const msgTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    msgTimerRef.current = setInterval(() => {
+      setMsgIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 1800);
+    return () => {
+      if (msgTimerRef.current) clearInterval(msgTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!id) {
@@ -618,11 +638,45 @@ export default function LifeExamResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen relative z-10">
-        <Nav />
-        <main className="mx-auto max-w-2xl px-4 py-20">
-          <p className="text-sub">読み込み中...</p>
-        </main>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-8">
+          <div className="relative h-48 w-48">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="44" fill="none" stroke="#ffffff18" strokeWidth="6" />
+              <circle
+                cx="50" cy="50" r="44"
+                fill="none"
+                stroke="#FFB84E"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray="276.5"
+                strokeDashoffset="69"
+                style={{ animation: "spin-dash 1.6s linear infinite" }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+              <span className="text-3xl">⚖️</span>
+              <span className="text-xs font-bold text-[#FFB84E]">採点中</span>
+            </div>
+          </div>
+          <p
+            key={msgIndex}
+            className="text-center text-base font-medium text-[#555566]"
+            style={{ animation: "fadein 0.4s ease" }}
+          >
+            {LOADING_MESSAGES[msgIndex]}
+          </p>
+        </div>
+        <style>{`
+          @keyframes spin-dash {
+            0%   { stroke-dashoffset: 276.5; }
+            100% { stroke-dashoffset: -276.5; }
+          }
+          @keyframes fadein {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
       </div>
     );
   }

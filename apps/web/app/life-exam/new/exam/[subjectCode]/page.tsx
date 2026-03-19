@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -20,6 +20,15 @@ import {
 import Nav from "../../../../components/Nav";
 
 const DRAFT_KEY = "life_exam_draft";
+
+const LOADING_MESSAGES = [
+  "あなたの人生を分析中...",
+  "5つの資本を計算しています...",
+  "全国データと照合中...",
+  "偏差値を算出中...",
+  "あなたのキャラクターを判定中...",
+  "もうすぐ結果が出ます...",
+];
 
 const CODE_TO_INDEX: Record<string, number> = EXAM_V2_SUBJECT_ORDER.reduce(
   (acc, code, i) => ({ ...acc, [code]: i }),
@@ -41,6 +50,8 @@ export default function LifeExamSubjectPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [msgIndex, setMsgIndex] = useState(0);
+  const msgTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const isValidCode = EXAM_V2_SUBJECT_ORDER.includes(subjectCode as SubjectCode);
   const currentIndex = CODE_TO_INDEX[subjectCode] ?? 0;
@@ -58,6 +69,20 @@ export default function LifeExamSubjectPage() {
   const allAnswered =
     currentQuestions.length > 0 &&
     currentQuestions.every((q) => answers[q.id] != null && answers[q.id] >= 0);
+
+  useEffect(() => {
+    if (submitting && isLastSubject) {
+      setMsgIndex(0);
+      msgTimerRef.current = setInterval(() => {
+        setMsgIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+      }, 1800);
+    } else {
+      if (msgTimerRef.current) clearInterval(msgTimerRef.current);
+    }
+    return () => {
+      if (msgTimerRef.current) clearInterval(msgTimerRef.current);
+    };
+  }, [submitting, isLastSubject]);
 
   useEffect(() => {
     if (!isValidCode) {
@@ -276,6 +301,63 @@ export default function LifeExamSubjectPage() {
 
   const inputClass = "mt-2 w-full";
   const labelClass = "block text-sm font-medium";
+
+  if (submitting && isLastSubject) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-8">
+          {/* 円形アニメーション */}
+          <div className="relative h-48 w-48">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+              {/* 背景トラック */}
+              <circle
+                cx="50" cy="50" r="44"
+                fill="none"
+                stroke="#ffffff18"
+                strokeWidth="6"
+              />
+              {/* アニメーション円弧 */}
+              <circle
+                cx="50" cy="50" r="44"
+                fill="none"
+                stroke="#FFB84E"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray="276.5"
+                strokeDashoffset="69"
+                style={{ animation: "spin-dash 1.6s linear infinite" }}
+              />
+            </svg>
+            {/* 中央テキスト */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+              <span className="text-3xl">⚖️</span>
+              <span className="text-xs font-bold text-[#FFB84E]">採点中</span>
+            </div>
+          </div>
+
+          {/* メッセージ */}
+          <p
+            key={msgIndex}
+            className="text-center text-base font-medium text-[#555566]"
+            style={{ animation: "fadein 0.4s ease" }}
+          >
+            {LOADING_MESSAGES[msgIndex]}
+          </p>
+        </div>
+
+        <style>{`
+          @keyframes spin-dash {
+            0%   { stroke-dashoffset: 276.5; }
+            100% { stroke-dashoffset: -276.5; }
+          }
+          @keyframes fadein {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative z-10">
