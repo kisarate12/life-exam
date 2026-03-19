@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const LINE_OFFICIAL_URL = "https://lin.ee/3nGM5xuo";
+/** LINE Bot の友達追加URL（startParam対応）。環境変数未設定時は従来の短縮URLにフォールバック */
+const LINE_BOT_BASE_URL =
+  process.env.LINE_BOT_ADD_FRIEND_URL ?? "https://lin.ee/3nGM5xuo";
+
+/** attempt_id を startParam として付与した LINE URL を返す */
+function buildLineUrl(attemptId: string): URL {
+  const url = new URL(LINE_BOT_BASE_URL);
+  url.searchParams.set("start", attemptId);
+  return url;
+}
 
 /**
  * LINE誘導クリックをDBに記録してからLINE公式へリダイレクトする。
@@ -13,11 +22,11 @@ const LINE_OFFICIAL_URL = "https://lin.ee/3nGM5xuo";
  * 記録が入らない。サービスロールなら RLS を通過して取得・insert できる。
  */
 export async function GET(request: NextRequest) {
-  const lineUrl = new URL(LINE_OFFICIAL_URL);
+  const { searchParams } = new URL(request.url);
+  const attemptId = searchParams.get("attempt_id");
+  const lineUrl = attemptId ? buildLineUrl(attemptId) : new URL(LINE_BOT_BASE_URL);
 
   try {
-    const { searchParams } = new URL(request.url);
-    const attemptId = searchParams.get("attempt_id");
     const characterName = searchParams.get("character_name") ?? null;
     const world = searchParams.get("world") ?? null;
 

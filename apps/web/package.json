@@ -17,6 +17,7 @@
     "generate:ogp": "cross-env PLAYWRIGHT_BASE_URL=http://localhost:3000 playwright test generate-ogp.spec --project=chromium"
   },
   "dependencies": {
+    "@line/bot-sdk": "^10.6.0",
     "@supabase/supabase-js": "^2.95.3",
     "@vercel/speed-insights": "^2.0.0",
     "chart.js": "^4.4.6",

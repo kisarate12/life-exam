@@ -2,6 +2,25 @@ import { notFound } from "next/navigation";
 import { CHARACTER_DEFINITIONS } from "@/lib/life-diagnosis/characters";
 import type { CharacterId } from "@/lib/life-diagnosis/types";
 
+const CHARACTER_KEYWORD: Record<string, string> = {
+  amaterasu: "完全自由",
+  king: "人生充実",
+  lion: "孤高の王",
+  kaiko: "豊かな孤独",
+  tsukuyomi: "時間持ち",
+  noble: "文化的生活",
+  turtle: "ユルフワ人生",
+  snail: "最低限生活",
+  dwarf_king: "激務充実",
+  knight: "休日ゼロ",
+  tanuki: "要領主義",
+  beetle: "仕事一筋",
+  goblin_king: "心の富豪",
+  serf: "人生消耗",
+  hyena: "じり貧",
+  mosquito: "崖っぷち",
+};
+
 const WORLD_COLOR: Record<string, string> = {
   "空の世界の住人": "#4A90D9",
   "海の世界の住人": "#1B6B93",
@@ -30,6 +49,7 @@ export default async function OgpGenPage({
   const imageSrc = `/life-diagnosis/characters/${encodeURIComponent(def.name)}.png`;
   // 最初の文末（。）までを説明文として使用
   const shortDesc = def.description.split("\n")[0] ?? def.description;
+  const keyword = CHARACTER_KEYWORD[characterId] ?? "";
 
   return (
     <>
@@ -93,8 +113,31 @@ export default async function OgpGenPage({
             display: "flex",
             flexDirection: "column",
             padding: "52px 56px 44px 52px",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          {/* 背景キーワード */}
+          {keyword && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 90,
+                right: -10,
+                fontSize: keyword.length <= 4 ? 200 : keyword.length <= 5 ? 160 : keyword.length <= 6 ? 120 : 90,
+                fontWeight: 900,
+                color,
+                opacity: 0.07,
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                userSelect: "none",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {keyword}
+            </div>
+          )}
           {/* 世界バッジ */}
           <div
             style={{
