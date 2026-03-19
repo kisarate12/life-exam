@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { CHARACTER_DEFINITIONS } from "@/lib/life-diagnosis/characters";
 import { CHARACTER_IDS } from "@/lib/life-diagnosis/types";
+import { provisionalDeviationValue } from "@/lib/life-exam/constants";
+import { getRankFromDeviation } from "@/lib/life-exam/judgement";
+import { runDiagnosis, lifeStatsFromExamRanks } from "@/lib/life-diagnosis";
+import type { Rank } from "@/lib/life-diagnosis";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -28,21 +32,55 @@ export async function generateMetadata({
   let characterName = "";
   let worldLabel = "";
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/life_exam_ranking_entries?attempt_id=eq.${id}&select=character_name,world`,
-      {
-        headers: {
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-        },
-        cache: "no-store",
+    // まず ranking_entries から取得（高速パス）
+    if (supabaseUrl && anonKey) {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/life_exam_ranking_entries?attempt_id=eq.${id}&select=character_name,world`,
+        {
+          headers: {
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`,
+          },
+          cache: "no-store",
+        }
+      );
+      const data = await res.json();
+      if (Array.isArray(data) && data[0]) {
+        characterName = data[0].character_name ?? "";
+        worldLabel = WORLD_LABEL[data[0].world] ?? "";
       }
-    );
-    const data = await res.json();
-    if (Array.isArray(data) && data[0]) {
-      characterName = data[0].character_name ?? "";
-      worldLabel = WORLD_LABEL[data[0].world] ?? "";
+    }
+
+    // ranking_entries が空の場合は scores から直接計算（フォールバック）
+    if (!characterName && supabaseUrl && anonKey) {
+      const [scoresRes, subjectsRes] = await Promise.all([
+        fetch(
+          `${supabaseUrl}/rest/v1/life_exam_scores?attempt_id=eq.${id}&select=subject_id,score`,
+          { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }, cache: "no-store" }
+        ),
+        fetch(
+          `${supabaseUrl}/rest/v1/life_exam_subjects?select=id,code`,
+          { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }, cache: "no-store" }
+        ),
+      ]);
+      const scores = await scoresRes.json() as { subject_id: number; score: number }[];
+      const subjects = await subjectsRes.json() as { id: number; code: string }[];
+
+      if (Array.isArray(scores) && scores.length > 0 && Array.isArray(subjects)) {
+        const rankBySubjectId: Record<number, Rank> = {};
+        scores.forEach((s) => {
+          const dev = Math.round(provisionalDeviationValue(Number(s.score) * 5) * 10) / 10;
+          rankBySubjectId[s.subject_id] = getRankFromDeviation(dev) as Rank;
+        });
+        const stats = lifeStatsFromExamRanks(rankBySubjectId);
+        const characterResult = runDiagnosis(stats);
+        characterName = characterResult.name;
+        worldLabel = WORLD_LABEL[characterResult.world.replace("の世界の住人", "").replace("やみのせかいの住人", "冥界")] ?? "";
+      }
     }
   } catch {
     // fallback to generic
