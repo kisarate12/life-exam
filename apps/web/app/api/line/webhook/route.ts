@@ -40,36 +40,64 @@ async function handleFollow(event: {
   follow: { referral?: { ref?: string } };
 }): Promise<void> {
   const userId = event.source?.userId;
-  const attemptId = event.follow?.referral?.ref;
+  const attemptId = event.follow?.referral?.ref ?? null;
   const replyToken = event.replyToken;
 
-  if (!userId || !attemptId || !replyToken) return;
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceRoleKey) return;
-
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false },
-  });
-
-  const { data: click } = await supabase
-    .from("life_exam_line_clicks")
-    .select("character_name")
-    .eq("attempt_id", attemptId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  const resultUrl = `${WEB_BASE_URL}/life-exam/result/${attemptId}`;
-  const characterName = click?.character_name ?? "";
-  const message = characterName
-    ? (CHARACTER_MESSAGE[characterName] ?? `「${characterName}」の診断結果はこちら！`)
-    : "診断お疲れさまでした！あなたの結果を確認してみてください。";
+  if (!userId || !replyToken) return;
 
   const client = new messagingApi.MessagingApiClient({
     channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
   });
+
+  // startParam なし（LINE_BOT_ADD_FRIEND_URL 未設定 or 短縮URL経由など）
+  if (!attemptId) {
+    await client.replyMessage({
+      replyToken,
+      messages: [
+        {
+          type: "text",
+          text: "友達追加ありがとうございます！\n\n診断結果ページの「LINE で無料相談する」ボタンから追加すると、あなたの診断結果をお届けできます📊\n\n▶ 診断はこちら\n" + WEB_BASE_URL + "/life-exam",
+        },
+      ],
+    });
+    return;
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  let characterName = "";
+  if (supabaseUrl && serviceRoleKey) {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    // ranking_entries を優先（結果ページ表示時に必ず upsert される）
+    const { data: entry } = await supabase
+      .from("life_exam_ranking_entries")
+      .select("character_name")
+      .eq("attempt_id", attemptId)
+      .single();
+
+    characterName = entry?.character_name ?? "";
+
+    // フォールバック：line_clicks テーブルから取得
+    if (!characterName) {
+      const { data: click } = await supabase
+        .from("life_exam_line_clicks")
+        .select("character_name")
+        .eq("attempt_id", attemptId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      characterName = click?.character_name ?? "";
+    }
+  }
+
+  const resultUrl = `${WEB_BASE_URL}/life-exam/result/${attemptId}`;
+  const message = characterName
+    ? (CHARACTER_MESSAGE[characterName] ?? `「${characterName}」の診断結果はこちら！`)
+    : "診断お疲れさまでした！あなたの結果を確認してみてください。";
 
   await client.replyMessage({
     replyToken,
@@ -93,9 +121,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = JSON.parse(rawBody.toString()) as { events?: unknown[] };
     for (const event of body.events ?? []) {
-      const e = event as { type: string };
+      const e = event as { type: string; replyToken?: string; source?: { userId?: string } };
       if (e.type === "follow") {
         await handleFollow(e as unknown as Parameters<typeof handleFollow>[0]);
+      } else if (e.type === "message" && e.replyToken && e.source?.userId) {
+        // デバッグ用：ユーザーIDを返信する（確認後削除）
+        const client = new messagingApi.MessagingApiClient({ channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN });
+        await client.replyMessage({
+          replyToken: e.replyToken,
+          messages: [{ type: "text", text: `あなたのLINEユーザーID:\n${e.source.userId}` }],
+        });
       }
     }
   } catch (_e) {
