@@ -196,9 +196,14 @@ export default async function OgpGenPage({
               marginTop: 20,
             }}
           >
-            <span style={{ fontSize: 14, color: "#9A9290" }}>
-              人生診断 — あなたの人生を、相対評価する。
-            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ fontSize: 14, color: "#9A9290" }}>
+                人生診断 — あなたの人生を、相対評価する。
+              </span>
+              <span style={{ fontSize: 16, color, fontWeight: 800 }}>
+                あなたもやってみる →
+              </span>
+            </div>
             <span style={{ fontSize: 15, color, fontWeight: 700 }}>
               #人生診断
             </span>

@@ -189,7 +189,7 @@ export default function LifeExamSubjectPage() {
       }))
     );
     localStorage.removeItem(DRAFT_KEY);
-    router.push(`/life-exam/result/${attempt.id}`);
+    router.push(`/life-exam/result/${attempt.id}?from=exam`);
   };
 
   const setAnswer = (questionId: number, points: number) => {
@@ -278,7 +278,7 @@ export default function LifeExamSubjectPage() {
     await supabase.from("life_exam_scores").insert(scoresRows);
     localStorage.removeItem(DRAFT_KEY);
     setSubmitting(false);
-    router.push(`/life-exam/result/${attemptId}`);
+    router.push(`/life-exam/result/${attemptId}?from=exam`);
   };
 
   if (loading) {

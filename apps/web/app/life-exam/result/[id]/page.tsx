@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LifeExamAttempt, LifeExamProfile, LifeExamScore, LifeExamSubject, LifeExamAnswer, LifeExamQuestion } from "@/lib/life-exam/types";
 import { getJudgement, getRankFromDeviation } from "@/lib/life-exam/judgement";
@@ -438,6 +438,8 @@ function ComparisonTable({
 export default function LifeExamResultPage() {
   const params = useParams();
   const id = params?.id as string | undefined;
+  const searchParams = useSearchParams();
+  const isFromExam = searchParams?.get("from") === "exam";
   const [attempt, setAttempt] = useState<LifeExamAttempt | null>(null);
   const [profile, setProfile] = useState<LifeExamProfile | null>(null);
   const [scores, setScores] = useState<LifeExamScore[]>([]);
@@ -637,46 +639,60 @@ export default function LifeExamResultPage() {
   }, [attempt, scores, subjects, id]);
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-8">
-          <div className="relative h-48 w-48">
-            <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="44" fill="none" stroke="#ffffff18" strokeWidth="6" />
-              <circle
-                cx="50" cy="50" r="44"
-                fill="none"
-                stroke="#FFB84E"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray="276.5"
-                strokeDashoffset="69"
-                style={{ animation: "spin-dash 1.6s linear infinite" }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-              <span className="text-3xl">⚖️</span>
-              <span className="text-xs font-bold text-[#FFB84E]">採点中</span>
+    if (isFromExam) {
+      return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+          <div className="flex flex-col items-center gap-8">
+            <div className="relative h-48 w-48">
+              <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" fill="none" stroke="#ffffff18" strokeWidth="6" />
+                <circle
+                  cx="50" cy="50" r="44"
+                  fill="none"
+                  stroke="#FFB84E"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray="276.5"
+                  strokeDashoffset="69"
+                  style={{ animation: "spin-dash 1.6s linear infinite" }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                <span className="text-3xl">⚖️</span>
+                <span className="text-xs font-bold text-[#FFB84E]">採点中</span>
+              </div>
             </div>
+            <p
+              key={msgIndex}
+              className="text-center text-base font-medium text-[#555566]"
+              style={{ animation: "fadein 0.4s ease" }}
+            >
+              {LOADING_MESSAGES[msgIndex]}
+            </p>
           </div>
-          <p
-            key={msgIndex}
-            className="text-center text-base font-medium text-[#555566]"
-            style={{ animation: "fadein 0.4s ease" }}
-          >
-            {LOADING_MESSAGES[msgIndex]}
-          </p>
+          <style>{`
+            @keyframes spin-dash {
+              0%   { stroke-dashoffset: 276.5; }
+              100% { stroke-dashoffset: -276.5; }
+            }
+            @keyframes fadein {
+              from { opacity: 0; transform: translateY(6px); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
         </div>
-        <style>{`
-          @keyframes spin-dash {
-            0%   { stroke-dashoffset: 276.5; }
-            100% { stroke-dashoffset: -276.5; }
-          }
-          @keyframes fadein {
-            from { opacity: 0; transform: translateY(6px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
+      );
+    }
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="h-10 w-10 rounded-full border-4 border-[#F0EBE3] border-t-[#F57550]"
+            style={{ animation: "spin 0.8s linear infinite" }}
+          />
+          <p className="text-sm text-[#9A9290]">結果を読み込んでいます...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -911,8 +927,19 @@ export default function LifeExamResultPage() {
   const handleShareTikTok = () => {
     handleDownloadCard();
   };
-  const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`私は「${characterResult.name}」でした！\n世界：${worldDisplay.name}\n総合点：${totalScoreDisplay}点\n#人生診断\n${resultUrl}`)}`;
-  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(resultUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！#人生診断`)}`;
+  const challengeUrl = `${resultUrl}?ref=challenge`;
+  const subjectRankLine = ["収入", "資産", "健康", "人間関係", "時間"]
+    .map((name) => {
+      const r = comparisonRowsSameGen.find((x) => x.subjectName === name);
+      return `${name}：${r?.rank ?? "?"}`;
+    })
+    .join(" / ");
+  const percentPart = sameGenPercentText ?? nationalPercent;
+  const shareXText = percentPart
+    ? `人生診断やったら「${characterResult.name}」判定された...\n${subjectRankLine}\n同世代の${percentPart}😇\nあなたは何タイプ？→ ${challengeUrl}\n#人生診断`
+    : `人生診断やったら「${characterResult.name}」判定された...\n${subjectRankLine}\nあなたは何タイプ？→ ${challengeUrl}\n#人生診断`;
+  const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareXText)}`;
+  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(challengeUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！あなたは何タイプ？ #人生診断`)}`;
 
   return (
     <div className="min-h-screen relative z-10">
@@ -1337,8 +1364,9 @@ export default function LifeExamResultPage() {
             シェア用にカードを表示する
           </button>
           <p className="mt-4 text-center text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-            SNSでシェアしよう
+            友達に挑戦状を送る
           </p>
+          <p className="text-center text-xs text-[#9A9290]">あなたは何タイプ？と問いかけよう</p>
           <div className="mt-2 flex flex-wrap justify-center gap-4">
             <a
               href={shareXUrl}
