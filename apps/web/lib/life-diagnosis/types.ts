@@ -14,10 +14,10 @@ export interface LifeStats {
 }
 
 export const CHARACTER_IDS = [
-  "amaterasu", "king", "lion", "kaiko",
-  "tsukuyomi", "noble", "turtle", "snail",
+  "amaterasu", "king", "egyptian_cat", "kaiko",
+  "tsukuyomi", "noble", "namakemono", "snail",
   "dwarf_king", "knight", "tanuki", "beetle",
-  "goblin_king", "serf", "hyena", "mosquito",
+  "goblin_king", "wanderer", "hyena", "mosquito",
 ] as const;
 
 export type CharacterId = (typeof CHARACTER_IDS)[number];

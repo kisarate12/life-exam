@@ -17,7 +17,7 @@ const CHARACTER_IDS = [
   "kaiko",
   "tsukuyomi",
   "noble",
-  "turtle",
+  "namakemono",
   "snail",
   "dwarf_king",
   "knight",

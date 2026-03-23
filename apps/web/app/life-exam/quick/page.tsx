@@ -22,7 +22,7 @@ const QUESTIONS = [
     label: "時間",
     icon: "⏰",
     question: "自分の自由な時間が十分にある",
-    yes: "T",
+    yes: "F",
     no: "B",
     yesLabel: "はい",
     noLabel: "いいえ",
@@ -49,24 +49,16 @@ const QUESTIONS = [
   },
 ] as const;
 
-// MTCH形式コード → キャラクターID
+// MFCH形式コード → キャラクターID
 const CODE_TO_CHARACTER: Record<string, CharacterId> = {
-  MTCH: "amaterasu",
-  MTCS: "kaiko",
-  MTLH: "lion",
-  MTLS: "king",
-  MBCH: "dwarf_king",
-  MBCS: "knight",
-  MBLH: "tanuki",
-  MBLS: "beetle",
-  PTCH: "noble",
-  PTCS: "turtle",
-  PTLH: "tsukuyomi",
-  PTLS: "snail",
-  PBCH: "goblin_king",
-  PBCS: "serf",
-  PBLH: "hyena",
-  PBLS: "mosquito",
+  MFCH: "amaterasu",  MFLH: "king",
+  MFCS: "egyptian_cat", MFLS: "kaiko",
+  PFCH: "tsukuyomi",  PFLH: "noble",
+  PFCS: "namakemono", PFLS: "snail",
+  MBCH: "dwarf_king", MBLH: "knight",
+  MBCS: "tanuki",     MBLS: "beetle",
+  PBCH: "goblin_king", PBLH: "wanderer",
+  PBCS: "hyena",      PBLS: "mosquito",
 };
 
 const WORLD_COLOR: Record<string, { bg: string; text: string; badge: string }> = {

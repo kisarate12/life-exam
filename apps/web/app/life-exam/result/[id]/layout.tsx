@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { CHARACTER_DEFINITIONS } from "@/lib/life-diagnosis/characters";
 import { CHARACTER_IDS } from "@/lib/life-diagnosis/types";
-import { provisionalDeviationValue } from "@/lib/life-exam/constants";
-import { getRankFromDeviation } from "@/lib/life-exam/judgement";
-import { runDiagnosis, lifeStatsFromExamRanks } from "@/lib/life-diagnosis";
-import type { Rank } from "@/lib/life-diagnosis";
+import { runDiagnosisFromScores } from "@/lib/life-diagnosis";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -57,27 +54,16 @@ export async function generateMetadata({
 
     // ranking_entries が空の場合は scores から直接計算（フォールバック）
     if (!characterName && supabaseUrl && anonKey) {
-      const [scoresRes, subjectsRes] = await Promise.all([
-        fetch(
-          `${supabaseUrl}/rest/v1/life_exam_scores?attempt_id=eq.${id}&select=subject_id,score`,
-          { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }, cache: "no-store" }
-        ),
-        fetch(
-          `${supabaseUrl}/rest/v1/life_exam_subjects?select=id,code`,
-          { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }, cache: "no-store" }
-        ),
-      ]);
+      const scoresRes = await fetch(
+        `${supabaseUrl}/rest/v1/life_exam_scores?attempt_id=eq.${id}&select=subject_id,score`,
+        { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }, cache: "no-store" }
+      );
       const scores = await scoresRes.json() as { subject_id: number; score: number }[];
-      const subjects = await subjectsRes.json() as { id: number; code: string }[];
 
-      if (Array.isArray(scores) && scores.length > 0 && Array.isArray(subjects)) {
-        const rankBySubjectId: Record<number, Rank> = {};
-        scores.forEach((s) => {
-          const dev = Math.round(provisionalDeviationValue(Number(s.score) * 5) * 10) / 10;
-          rankBySubjectId[s.subject_id] = getRankFromDeviation(dev) as Rank;
-        });
-        const stats = lifeStatsFromExamRanks(rankBySubjectId);
-        const characterResult = runDiagnosis(stats);
+      if (Array.isArray(scores) && scores.length > 0) {
+        const scoreBySubjectId: Record<number, number> = {};
+        scores.forEach((s) => { scoreBySubjectId[s.subject_id] = Number(s.score); });
+        const characterResult = runDiagnosisFromScores(scoreBySubjectId);
         characterName = characterResult.name;
         worldLabel = WORLD_LABEL[characterResult.world.replace("の世界の住人", "").replace("やみのせかいの住人", "冥界")] ?? "";
       }

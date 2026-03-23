@@ -8,7 +8,7 @@ import { CHARACTER_IMAGE_BASE } from "./characters";
 
 const RANK_ORDER: Record<Rank, number> = { S: 0, A: 1, B: 2, C: 3, D: 4, E: 5, F: 6 };
 
-type RankRange = "S~B" | "S~A" | "C~F" | "D~F" | "C";
+type RankRange = "S~B" | "S~A" | "S~C" | "C~F" | "D~F" | "C";
 
 function inRange(rank: Rank, range: RankRange): boolean {
   const r = RANK_ORDER[rank];
@@ -17,6 +17,8 @@ function inRange(rank: Rank, range: RankRange): boolean {
       return r <= 2; // S, A, B
     case "S~A":
       return r <= 1; // S, A のみ
+    case "S~C":
+      return r <= 3; // S, A, B, C
     case "C~F":
       return r >= 3; // C, D, E, F
     case "D~F":
@@ -47,6 +49,7 @@ function determineCharacter(
   const kinyu = getKinyu(income, asset);
 
   // ===================== 空の世界 =====================
+  // アマテラス（1st: 収入 S~A の最上位）
   if (
     inRange(income, "S~A") &&
     inRange(asset, "S~B") &&
@@ -56,26 +59,37 @@ function determineCharacter(
   ) {
     return { character: "アマテラス", world: "空" };
   }
+  // アマテラス（2nd: 4軸すべて良好 = kinyu S~B + time S~B + health S~C + rel S~B）
+  // ※ 人間関係 B 以上の人は孤独ではないためアマテラスへ
   if (
     inRange(kinyu, "S~B") &&
-    inRange(health, "S~B") &&
+    inRange(health, "S~C") &&
     inRange(relationships, "S~B") &&
     inRange(time, "S~B")
   ) {
-    return { character: "大将軍", world: "空" };
+    return { character: "アマテラス", world: "空" };
+  }
+  // 孤独な大王: 金融良 + 時間良 + 健康普通以上 + 人間関係 C 以下（平均以下）
+  if (
+    inRange(kinyu, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "C~F") &&
+    inRange(time, "S~B")
+  ) {
+    return { character: "孤独な大王", world: "空" };
   }
   if (
     inRange(kinyu, "S~B") &&
     inRange(time, "S~B") &&
-    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
-      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+    inRange(health, "D~F") &&
+    inRange(relationships, "S~C")
   ) {
-    return { character: "獅子", world: "空" };
+    return { character: "スフィンクス", world: "空" };
   }
   if (
     inRange(kinyu, "S~B") &&
-    inRange(health, "C~F") &&
-    inRange(relationships, "C~F") &&
+    inRange(health, "D~F") &&
+    inRange(relationships, "D~F") &&
     inRange(time, "S~B")
   ) {
     return { character: "カイコ", world: "空" };
@@ -84,32 +98,32 @@ function determineCharacter(
   // ===================== 海の世界 =====================
   if (
     inRange(kinyu, "C") &&
-    inRange(health, "S~B") &&
-    inRange(relationships, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "S~C") &&
     inRange(time, "S~A")
   ) {
     return { character: "ツクヨミ", world: "海" };
   }
   if (
     inRange(kinyu, "C~F") &&
-    inRange(health, "S~B") &&
-    inRange(relationships, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "S~C") &&
     inRange(time, "S~B")
   ) {
-    return { character: "下流貴族", world: "海" };
+    return { character: "没落貴族", world: "海" };
   }
   if (
     inRange(kinyu, "C~F") &&
     inRange(time, "S~B") &&
-    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
-      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+    ((inRange(health, "S~C") && inRange(relationships, "D~F")) ||
+      (inRange(health, "D~F") && inRange(relationships, "S~C")))
   ) {
-    return { character: "亀", world: "海" };
+    return { character: "ナマケモノ", world: "海" };
   }
   if (
     inRange(kinyu, "C~F") &&
-    inRange(health, "C~F") &&
-    inRange(relationships, "C~F") &&
+    inRange(health, "D~F") &&
+    inRange(relationships, "D~F") &&
     inRange(time, "S~B")
   ) {
     return { character: "カタツムリ", world: "海" };
@@ -118,16 +132,16 @@ function determineCharacter(
   // ===================== 地上の世界 =====================
   if (
     inRange(income, "S~A") &&
-    inRange(health, "S~B") &&
-    inRange(relationships, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "S~C") &&
     inRange(time, "C")
   ) {
     return { character: "ドワーフ王", world: "地上" };
   }
   if (
     inRange(kinyu, "S~B") &&
-    inRange(health, "S~B") &&
-    inRange(relationships, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "S~C") &&
     inRange(time, "C~F")
   ) {
     return { character: "騎士", world: "地上" };
@@ -135,15 +149,15 @@ function determineCharacter(
   if (
     inRange(kinyu, "S~B") &&
     inRange(time, "C~F") &&
-    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
-      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+    ((inRange(health, "S~C") && inRange(relationships, "D~F")) ||
+      (inRange(health, "D~F") && inRange(relationships, "S~C")))
   ) {
     return { character: "タヌキ", world: "地上" };
   }
   if (
     inRange(kinyu, "S~B") &&
-    inRange(health, "C~F") &&
-    inRange(relationships, "C~F") &&
+    inRange(health, "D~F") &&
+    inRange(relationships, "D~F") &&
     inRange(time, "C~F")
   ) {
     return { character: "フンコロガシ", world: "地上" };
@@ -152,32 +166,32 @@ function determineCharacter(
   // ===================== 冥界 =====================
   if (
     inRange(kinyu, "C") &&
-    inRange(health, "S~B") &&
-    inRange(relationships, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "S~C") &&
     inRange(time, "C~F")
   ) {
-    return { character: "ゴブリンキング", world: "冥界" };
+    return { character: "オークの族長", world: "冥界" };
   }
   if (
     inRange(kinyu, "D~F") &&
-    inRange(health, "S~B") &&
-    inRange(relationships, "S~B") &&
+    inRange(health, "S~C") &&
+    inRange(relationships, "S~C") &&
     inRange(time, "C~F")
   ) {
-    return { character: "農奴", world: "冥界" };
+    return { character: "流れ者", world: "冥界" };
   }
   if (
     inRange(kinyu, "C~F") &&
     inRange(time, "C~F") &&
-    ((inRange(health, "S~B") && inRange(relationships, "C~F")) ||
-      (inRange(health, "C~F") && inRange(relationships, "S~B")))
+    ((inRange(health, "S~C") && inRange(relationships, "D~F")) ||
+      (inRange(health, "D~F") && inRange(relationships, "S~C")))
   ) {
     return { character: "ハイエナ", world: "冥界" };
   }
   if (
     inRange(kinyu, "C~F") &&
-    inRange(health, "C~F") &&
-    inRange(relationships, "C~F") &&
+    inRange(health, "D~F") &&
+    inRange(relationships, "D~F") &&
     inRange(time, "C~F")
   ) {
     return { character: "蚊", world: "冥界" };
@@ -189,19 +203,19 @@ function determineCharacter(
 /** 判定結果のキャラ名 → CharacterId（定義の name とドワーフ王→ドワーフの王 の対応含む） */
 const CHARACTER_NAME_TO_ID: Record<string, CharacterId> = {
   アマテラス: "amaterasu",
-  大将軍: "king",
-  獅子: "lion",
+  孤独な大王: "king",
+  スフィンクス: "egyptian_cat",
   カイコ: "kaiko",
   ツクヨミ: "tsukuyomi",
-  下流貴族: "noble",
-  亀: "turtle",
+  没落貴族: "noble",
+  ナマケモノ: "namakemono",
   カタツムリ: "snail",
   ドワーフ王: "dwarf_king",
   騎士: "knight",
   タヌキ: "tanuki",
   フンコロガシ: "beetle",
-  ゴブリンキング: "goblin_king",
-  農奴: "serf",
+  オークの族長: "goblin_king",
+  流れ者: "wanderer",
   ハイエナ: "hyena",
   蚊: "mosquito",
 };
@@ -246,6 +260,53 @@ export function getCharacterResult(id: CharacterId): CharacterResult {
 export function runDiagnosis(stats: LifeStats): CharacterResult {
   const id = diagnose(stats);
   return getCharacterResult(id);
+}
+
+/**
+ * 絶対スコア閾値（全国の典型スコアをベース）
+ * subject_id: 1=資産, 2=収入, 3=人間関係, 4=時間, 5=健康
+ */
+export const SCORE_THRESHOLDS = {
+  /** 金融: max(sub1_資産, sub2_収入) >= この値で M（資産中央値=54 に基づく） */
+  financial: 54,
+  /** 時間: sub4 >= この値で F（中央値=53 に基づく） */
+  time: 53,
+  /** 人間関係: sub3 >= この値で C（中央値=54 に基づく） */
+  relationship: 54,
+  /** 健康: sub5 >= この値で H（サンプルデータのため実データ取得後に再評価予定） */
+  health: 65,
+} as const;
+
+/** 4文字コード → CharacterId（quick 診断と同じ体系） */
+const SCORE_CODE_TO_CHARACTER: Record<string, CharacterId> = {
+  MFCH: "amaterasu",  MFLH: "king",      MFCS: "egyptian_cat", MFLS: "kaiko",
+  PFCH: "tsukuyomi",  PFLH: "noble",     PFCS: "namakemono",   PFLS: "snail",
+  MBCH: "dwarf_king", MBLH: "knight",    MBCS: "tanuki",       MBLS: "beetle",
+  PBCH: "goblin_king", PBLH: "wanderer", PBCS: "hyena",        PBLS: "mosquito",
+};
+
+/**
+ * 科目別生スコア(0-100) からキャラクターIDを絶対評価で判定
+ * subject_id: 1=資産, 2=収入, 3=人間関係, 4=時間, 5=健康
+ */
+export function diagnoseFromScores(scoreBySubjectId: Record<number, number>): CharacterId {
+  const asset       = scoreBySubjectId[1] ?? 0;
+  const income      = scoreBySubjectId[2] ?? 0;
+  const relationship = scoreBySubjectId[3] ?? 0;
+  const time        = scoreBySubjectId[4] ?? 0;
+  const health      = scoreBySubjectId[5] ?? 0;
+
+  const financial = Math.max(asset, income);
+  const m = financial    >= SCORE_THRESHOLDS.financial    ? "M" : "P";
+  const f = time         >= SCORE_THRESHOLDS.time         ? "F" : "B";
+  const c = relationship >= SCORE_THRESHOLDS.relationship ? "C" : "L";
+  const h = health       >= SCORE_THRESHOLDS.health       ? "H" : "S";
+
+  return SCORE_CODE_TO_CHARACTER[`${m}${f}${c}${h}`] ?? "mosquito";
+}
+
+export function runDiagnosisFromScores(scoreBySubjectId: Record<number, number>): CharacterResult {
+  return getCharacterResult(diagnoseFromScores(scoreBySubjectId));
 }
 
 /**

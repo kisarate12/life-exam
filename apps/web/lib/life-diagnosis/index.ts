@@ -1,8 +1,8 @@
 export * from "./types";
 export * from "./characters";
-export { diagnose, runDiagnosis, getCharacterResult, lifeStatsFromExamRanks } from "./logic";
+export { diagnose, runDiagnosis, getCharacterResult, lifeStatsFromExamRanks, diagnoseFromScores, runDiagnosisFromScores, SCORE_THRESHOLDS } from "./logic";
 export type { CharacterResult } from "./logic";
 export { getEvolutionTarget, getDegradationTarget } from "./evolution";
 export type { EvolutionTarget, DegradationTarget } from "./evolution";
-export { getEvolutionMapInfo, SUMMIT_MESSAGE } from "./evolution-map";
-export type { EvolutionMapEntry } from "./evolution-map";
+export { getEvolutionPaths, getEvolutionMapInfo, SUMMIT_MESSAGE, CHARACTER_CODE } from "./evolution-map";
+export type { EvolutionPaths, EvolutionPath, EvolutionMapEntry } from "./evolution-map";

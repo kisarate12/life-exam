@@ -9,19 +9,19 @@ const WEB_BASE_URL = process.env.WEB_BASE_URL ?? "https://life-exam.vercel.app";
 
 const CHARACTER_MESSAGE: Record<string, string> = {
   アマテラスオオミカミ: "人生の頂点に立つあなたの結果、ぜひ確認してみてください！",
-  大将軍: "連戦連勝の実力者、あなたの診断結果はこちら！",
-  獅子: "孤高の王者、あなたの診断結果はこちら！",
+  孤独な大王: "お金も時間も手にした孤高の王、あなたの診断結果はこちら！",
+  スフィンクス: "謎めいた実力者、あなたの診断結果はこちら！",
   カイコ: "豊かな繭の中のあなた、診断結果を確認してみてください！",
   ツクヨミ: "時間の使い方が上手なあなた、結果はこちら！",
-  下流貴族: "本物の豊かさを持つあなたの診断結果はこちら！",
-  亀: "マイペースなあなたの診断結果、のんびり確認してみてください！",
+  没落貴族: "本物の豊かさを持つあなたの診断結果はこちら！",
+  ナマケモノ: "マイペースなあなたの診断結果、のんびり確認してみてください！",
   カタツムリ: "殻を破るきっかけに、あなたの診断結果はこちら！",
   ドワーフの王: "働き者のあなた、診断結果はこちらです！",
   騎士: "誠実なあなたの診断結果、確認してみてください！",
   タヌキ: "要領のいいあなたの診断結果はこちら！",
   フンコロガシ: "一度立ち止まって、あなたの診断結果を確認してみてください！",
-  ゴブリンキング: "心の豊かさを持つあなたの診断結果はこちら！",
-  農奴: "誠実なあなたに、きっと届く結果がここにあります！",
+  オークの族長: "心の豊かさを持つあなたの診断結果はこちら！",
+  流れ者: "身軽に生きるあなた、次の物語の始まりがここにあります！",
   ハイエナ: "まだ終わりじゃない、あなたの診断結果はこちら！",
   蚊: "ここからが本当のスタート、あなたの診断結果はこちら！",
 };
@@ -48,6 +48,18 @@ async function handleFollow(event: {
   const client = new messagingApi.MessagingApiClient({
     channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
   });
+
+  // DEBUG: referral の中身を確認（確認後削除）
+  await client.replyMessage({
+    replyToken,
+    messages: [
+      {
+        type: "text",
+        text: `[DEBUG] follow event\nreferral: ${JSON.stringify(event.follow?.referral ?? null)}\nattemptId: ${attemptId}`,
+      },
+    ],
+  });
+  return;
 
   // startParam なし（LINE_BOT_ADD_FRIEND_URL 未設定 or 短縮URL経由など）
   if (!attemptId) {
@@ -94,7 +106,24 @@ async function handleFollow(event: {
     }
   }
 
-  const resultUrl = `${WEB_BASE_URL}/life-exam/result/${attemptId}`;
+  // LINE登録でレポートを無料解放
+  if (supabaseUrl && serviceRoleKey) {
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+    await supabaseAdmin.from("life_exam_report_purchases").upsert(
+      {
+        attempt_id: attemptId,
+        stripe_session_id: null,
+        unlock_method: "line",
+        amount_yen: 0,
+        paid_at: new Date().toISOString(),
+      },
+      { onConflict: "attempt_id" }
+    );
+  }
+
+  const reportUrl = `${WEB_BASE_URL}/life-exam/result/${attemptId}/report`;
   const message = characterName
     ? (CHARACTER_MESSAGE[characterName] ?? `「${characterName}」の診断結果はこちら！`)
     : "診断お疲れさまでした！あなたの結果を確認してみてください。";
@@ -104,7 +133,7 @@ async function handleFollow(event: {
     messages: [
       {
         type: "text",
-        text: `${message}\n\n📊 診断結果はこちら👇\n${resultUrl}`,
+        text: `${message}\n\n📋 詳細レポートはこちら👇\n${reportUrl}`,
       },
     ],
   });

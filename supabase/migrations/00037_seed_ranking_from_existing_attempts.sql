@@ -77,7 +77,7 @@ BEGIN
       RETURN;
     END IF;
     IF health_or_rel_only AND r4 >= 5 THEN
-      RETURN QUERY SELECT '海'::text, '亀'::text, '/life-diagnosis/characters/亀.png'::text;
+      RETURN QUERY SELECT '海'::text, '頭痛の亀'::text, '/life-diagnosis/characters/頭痛の亀.png'::text;
       RETURN;
     END IF;
     IF both_bad AND r4 >= 5 THEN
@@ -109,7 +109,7 @@ BEGIN
   -- 冥界（金融C〜F かつ 時間C〜F）
   IF fr <= 4 AND r4 <= 4 THEN
     IF fr = 4 AND r5 >= 5 AND r3 >= 5 AND r4 <= 4 THEN
-      RETURN QUERY SELECT '冥界'::text, 'ゴブリンキング'::text, '/life-diagnosis/characters/ゴブリンキング.png'::text;
+      RETURN QUERY SELECT '冥界'::text, 'オークの族長'::text, '/life-diagnosis/characters/オークの族長.png'::text;
       RETURN;
     END IF;
     IF fr <= 3 AND r5 >= 5 AND r3 >= 5 AND r4 <= 4 THEN
