@@ -80,7 +80,7 @@ async function handleFollow(event: {
 
   let characterName = "";
   if (supabaseUrl && serviceRoleKey) {
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    const supabase = createClient(supabaseUrl!, serviceRoleKey!, {
       auth: { persistSession: false },
     });
 
@@ -108,7 +108,7 @@ async function handleFollow(event: {
 
   // LINE登録でレポートを無料解放
   if (supabaseUrl && serviceRoleKey) {
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    const supabaseAdmin = createClient(supabaseUrl!, serviceRoleKey!, {
       auth: { persistSession: false },
     });
     await supabaseAdmin.from("life_exam_report_purchases").upsert(
