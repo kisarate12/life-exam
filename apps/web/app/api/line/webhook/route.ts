@@ -127,6 +127,88 @@ async function handleFollow(event: {
   });
 }
 
+async function handleMessage(event: {
+  replyToken: string;
+  source: { userId: string };
+  message: { type: string; text?: string };
+}): Promise<void> {
+  const replyToken = event.replyToken;
+  const text = (event.message.text ?? "").trim().toUpperCase().replace(/\s/g, "");
+  if (!text) return;
+
+  const client = new messagingApi.MessagingApiClient({
+    channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
+  });
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) return;
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  // トークンを検索
+  const { data: tokenRow } = await supabase
+    .from("life_exam_report_tokens")
+    .select("attempt_id, expires_at, used_at")
+    .eq("token", text)
+    .single();
+
+  if (!tokenRow) {
+    await client.replyMessage({
+      replyToken,
+      messages: [{ type: "text", text: "コードが見つかりません。\n\n診断結果ページで発行コードを確認してください。" }],
+    });
+    return;
+  }
+
+  if (tokenRow.used_at) {
+    await client.replyMessage({
+      replyToken,
+      messages: [{ type: "text", text: "このコードはすでに使用済みです。\n\n新しいコードが必要な場合は診断結果ページで再発行してください。" }],
+    });
+    return;
+  }
+
+  if (new Date(tokenRow.expires_at) < new Date()) {
+    await client.replyMessage({
+      replyToken,
+      messages: [{ type: "text", text: "コードの有効期限が切れています。\n\n診断結果ページで再発行してください。" }],
+    });
+    return;
+  }
+
+  // レポート解放
+  await supabase.from("life_exam_report_purchases").upsert(
+    {
+      attempt_id: tokenRow.attempt_id,
+      stripe_session_id: null,
+      unlock_method: "line",
+      amount_yen: 0,
+      paid_at: new Date().toISOString(),
+    },
+    { onConflict: "attempt_id" }
+  );
+
+  // トークンを使用済みに更新
+  await supabase
+    .from("life_exam_report_tokens")
+    .update({ used_at: new Date().toISOString() })
+    .eq("token", text);
+
+  const reportUrl = `${WEB_BASE_URL}/life-exam/result/${tokenRow.attempt_id}/report`;
+  await client.replyMessage({
+    replyToken,
+    messages: [
+      {
+        type: "text",
+        text: `コードを確認しました✅\n\n📋 詳細レポートはこちら👇\n${reportUrl}\n\nタップするとレポートが開きます。`,
+      },
+    ],
+  });
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const signature = request.headers.get("x-line-signature") ?? "";
   const rawBody = Buffer.from(await request.arrayBuffer());
@@ -142,12 +224,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       if (e.type === "follow") {
         await handleFollow(e as unknown as Parameters<typeof handleFollow>[0]);
       } else if (e.type === "message" && e.replyToken && e.source?.userId) {
-        // デバッグ用：ユーザーIDを返信する（確認後削除）
-        const client = new messagingApi.MessagingApiClient({ channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN });
-        await client.replyMessage({
-          replyToken: e.replyToken,
-          messages: [{ type: "text", text: `あなたのLINEユーザーID:\n${e.source.userId}` }],
-        });
+        const msg = e as unknown as { type: string; replyToken: string; source: { userId: string }; message: { type: string; text?: string } };
+        await handleMessage(msg);
       }
     }
   } catch (_e) {

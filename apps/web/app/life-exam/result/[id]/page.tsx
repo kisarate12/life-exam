@@ -128,6 +128,9 @@ export default function LifeExamResultPage() {
   const [msgIndex, setMsgIndex] = useState(0);
   const msgTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [lineToken, setLineToken] = useState<string | null>(null);
+  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     msgTimerRef.current = setInterval(() => {
@@ -394,6 +397,38 @@ export default function LifeExamResultPage() {
     }
   };
 
+  const handleLineClick = async () => {
+    if (!id || isGeneratingToken) return;
+    setIsGeneratingToken(true);
+    try {
+      const res = await fetch("/api/life-exam/generate-report-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attempt_id: id }),
+      });
+      const { token, error: apiError } = await res.json();
+      if (apiError || !token) {
+        alert("発行コードの生成に失敗しました。しばらくしてからお試しください。");
+        return;
+      }
+      setLineToken(token);
+    } catch {
+      alert("エラーが発生しました。しばらくしてからお試しください。");
+    } finally {
+      setIsGeneratingToken(false);
+    }
+  };
+
+  const handleCopyToken = async (token: string) => {
+    try {
+      await navigator.clipboard.writeText(token);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // フォールバック
+    }
+  };
+
   const statRows = [
     { label: "収入", rank: subjectRanks["収入"] ?? "C" },
     { label: "資産", rank: subjectRanks["資産"] ?? "C" },
@@ -417,6 +452,83 @@ export default function LifeExamResultPage() {
           >
             📊 詳細レポートを解放する
           </a>
+        </div>
+      )}
+
+      {/* 発行コードモーダル */}
+      {lineToken && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.85)" }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+                LINEで無料レポートを受け取る
+              </h3>
+              <button
+                type="button"
+                onClick={() => setLineToken(null)}
+                className="text-[#9A9290] hover:text-[#333333] text-xl leading-none"
+                aria-label="閉じる"
+              >✕</button>
+            </div>
+
+            {/* STEP 1: QRコード */}
+            <div className="mb-4">
+              <p className="text-xs font-bold text-[#9A9290] mb-2">① LINEを友達追加</p>
+              <div className="flex items-center gap-4">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(process.env.NEXT_PUBLIC_LINE_BOT_URL ?? "https://line.me/R/ti/p/@364zkemw")}`}
+                  alt="LINE QRコード"
+                  width={100}
+                  height={100}
+                  className="rounded-lg border border-[#E8DDD0] shrink-0"
+                />
+                <div>
+                  <p className="text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", lineHeight: 1.7 }}>
+                    QRコードを読み込んで<br />LINE公式を友達追加
+                  </p>
+                  <a
+                    href={process.env.NEXT_PUBLIC_LINE_BOT_URL ?? "https://line.me/R/ti/p/@364zkemw"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
+                    style={{ background: "#06C755" }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white" aria-hidden>
+                      <path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.16 1.84 5.94 4.6 7.66-.18.66-.68 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.4-1.62 3.38-2.28.77.11 1.57.17 2.43.17 5.52 0 10-3.92 10-8.64C22 5.92 17.52 2 12 2z"/>
+                    </svg>
+                    LINEで開く
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-[#E8DDD0] my-4" />
+
+            {/* STEP 2: 発行コード */}
+            <div>
+              <p className="text-xs font-bold text-[#9A9290] mb-2">② 発行コードをLINEに送信</p>
+              <button
+                type="button"
+                onClick={() => handleCopyToken(lineToken)}
+                className="w-full rounded-xl border-2 border-dashed border-[#06C755] bg-[#F0FFF5] py-3 text-center transition hover:bg-[#E0FFF0] active:scale-[0.98]"
+              >
+                <p className="text-2xl font-bold tracking-[0.2em] text-[#333333]" style={{ fontFamily: "monospace" }}>
+                  {lineToken}
+                </p>
+                <p className="mt-1 text-xs text-[#06C755] font-bold">
+                  {copied ? "コピーしました！" : "タップでコピー"}
+                </p>
+              </button>
+              <p className="mt-2 text-xs text-[#9A9290] text-center" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+                追加後、このコードをLINEのトークに送信すると<br />レポートURLが届きます
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -861,20 +973,23 @@ export default function LifeExamResultPage() {
           </h2>
 
           {/* LINE CTA（メイン） */}
-          <a
-            href={`/api/life-exam/line-redirect?attempt_id=${id}`}
-            className="flex flex-col items-center justify-center gap-1 w-full rounded-2xl px-5 py-4 text-white transition hover:brightness-110 active:scale-[0.98]"
+          <button
+            onClick={handleLineClick}
+            disabled={isGeneratingToken}
+            className="flex flex-col items-center justify-center gap-1 w-full rounded-2xl px-5 py-4 text-white transition hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
             style={{ background: "#06C755", boxShadow: "0 4px 20px rgba(6,199,85,0.4)" }}
           >
             <div className="flex items-center gap-2">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden>
                 <path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.16 1.84 5.94 4.6 7.66-.18.66-.68 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.4-1.62 3.38-2.28.77.11 1.57.17 2.43.17 5.52 0 10-3.92 10-8.64C22 5.92 17.52 2 12 2z"/>
               </svg>
-              <span className="text-base font-bold text-white">LINE友達追加で無料で見る</span>
+              <span className="text-base font-bold text-white">
+                {isGeneratingToken ? "発行中..." : "LINE友達追加で無料で見る"}
+              </span>
               <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold" style={{ color: "#06C755" }}>無料</span>
             </div>
-            <span className="text-xs text-white opacity-75">追加後はブラウザに戻るとレポートが開きます</span>
-          </a>
+            <span className="text-xs text-white opacity-75">発行コードをLINEに送信するだけ</span>
+          </button>
 
           {/* 区切り */}
           <div className="flex items-center gap-3 my-4">
