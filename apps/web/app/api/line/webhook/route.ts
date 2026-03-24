@@ -49,26 +49,14 @@ async function handleFollow(event: {
     channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
   });
 
-  // DEBUG: referral の中身を確認（確認後削除）
-  await client.replyMessage({
-    replyToken,
-    messages: [
-      {
-        type: "text",
-        text: `[DEBUG] follow event\nreferral: ${JSON.stringify(event.follow?.referral ?? null)}\nattemptId: ${attemptId}`,
-      },
-    ],
-  });
-  return;
-
-  // startParam なし（LINE_BOT_ADD_FRIEND_URL 未設定 or 短縮URL経由など）
+  // referral なし → 診断結果ページから追加した場合はブラウザに戻れば解放済み
   if (!attemptId) {
     await client.replyMessage({
       replyToken,
       messages: [
         {
           type: "text",
-          text: "友達追加ありがとうございます！\n\n診断結果ページの「LINE で無料相談する」ボタンから追加すると、あなたの診断結果をお届けできます📊\n\n▶ 診断はこちら\n" + WEB_BASE_URL + "/life-exam",
+          text: "友達追加ありがとうございます！📊\n\nレポートはブラウザに戻ると確認できます。\n\n（診断を受けていない場合はこちらから）\n" + WEB_BASE_URL + "/life-exam",
         },
       ],
     });

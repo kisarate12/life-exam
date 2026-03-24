@@ -873,7 +873,7 @@ export default function LifeExamResultPage() {
               <span className="text-base font-bold text-white">LINE友達追加で無料で見る</span>
               <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold" style={{ color: "#06C755" }}>無料</span>
             </div>
-            <span className="text-xs text-white opacity-75">友達追加するだけ・30秒で完了</span>
+            <span className="text-xs text-white opacity-75">追加後はブラウザに戻るとレポートが開きます</span>
           </a>
 
           {/* 区切り */}

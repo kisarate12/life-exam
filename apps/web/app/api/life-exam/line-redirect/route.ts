@@ -66,6 +66,18 @@ export async function GET(request: NextRequest) {
       character_name: characterName,
       world,
     });
+
+    // クリック時点でレポートを解放（referral経由が不安定なためここで確実に記録）
+    await supabase.from("life_exam_report_purchases").upsert(
+      {
+        attempt_id: attempt.id,
+        stripe_session_id: null,
+        unlock_method: "line",
+        amount_yen: 0,
+        paid_at: new Date().toISOString(),
+      },
+      { onConflict: "attempt_id" }
+    );
   } catch (_e) {
     // テーブル未作成・RLS・ネットワーク等で失敗してもLINEへ飛ばす
   }
