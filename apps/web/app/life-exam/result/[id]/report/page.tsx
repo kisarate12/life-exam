@@ -10,7 +10,7 @@ import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-e
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
-import { runDiagnosis, lifeStatsFromExamRanks, getCharacterResult, getEvolutionPaths, CHARACTER_CODE, diagnoseFromScores } from "@/lib/life-diagnosis";
+import { getCharacterResult, getEvolutionPaths, CHARACTER_CODE, diagnoseFromScores } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
 import Nav from "../../../../components/Nav";
 import { StatusRadarChart } from "../StatusRadarChart";
@@ -466,10 +466,13 @@ export default function ReportPage() {
   const comparisonRowsDetailed = subjectsSorted.map((s) => {
     const score = Number(scoreBySubject[s.id] ?? 0);
     const st = comparisonStats?.subjects?.find((x) => x.subject_id === s.id);
+    // ランク判定は絶対値ベース（スコア暫定偏差値）で安定させる
+    const rankDev = subjectDeviationFromScore(score);
+    const rank = getRankFromDeviation(rankDev);
+    // 比較バー・偏差値表示は人口統計データを優先使用
     const dev =
       deviationFromPopulation(score, st?.avg_same_gen ?? null, st?.stddev_same_gen ?? null) ??
-      subjectDeviationFromScore(score);
-    const rank = getRankFromDeviation(dev);
+      rankDev;
     const sameGenPercent = st && st.total_same_gen > 0 ? formatPercentile(st.rank_same_gen, st.total_same_gen) : "—";
     const allPercent = st && st.total_all > 0 ? formatPercentile(st.rank_all, st.total_all) : "—";
     const sameGenRankText = st && st.total_same_gen > 0 ? `${st.total_same_gen}人中${st.rank_same_gen}位` : null;
@@ -504,20 +507,11 @@ export default function ReportPage() {
     };
   });
 
-  // 表示ランクと整合したdeviation基準でキャラクター判定
-  const rankBySubjectId: Record<number, JudgementRank> = {};
-  comparisonRowsDetailed.forEach((row, i) => {
-    const s = subjectsSorted[i];
-    if (s) rankBySubjectId[s.id] = row.rank;
-  });
-  const characterResult = runDiagnosis(lifeStatsFromExamRanks(rankBySubjectId));
+  // キャラクター判定・進化パスはすべてスコア絶対値ベースで統一
+  const characterResult = getCharacterResult(diagnoseFromScores(scoreBySubject));
   const characterReport = CHARACTER_REPORTS[characterResult.id];
   const characterCode = CHARACTER_CODE[characterResult.id] ?? "";
-
-  // 進化パスはスコア絶対値ベースのキャラクターIDで計算する
-  // （ランク基準の判定では人間関係BでもMBLH扱いになり進化先がずれるため）
-  const scoreBasedCharId = diagnoseFromScores(scoreBySubject);
-  const evolutionPaths = getEvolutionPaths(scoreBasedCharId);
+  const evolutionPaths = getEvolutionPaths(characterResult.id);
 
   // 4軸スライダー計算
   const axisSliders = AXIS_DEFS.map((axis) => {

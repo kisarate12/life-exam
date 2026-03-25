@@ -11,7 +11,7 @@ import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-e
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { getWorldLabelDisplay, getWorldDisplay, getWorldShort } from "@/lib/life-exam/worldDisplay";
-import { runDiagnosis, lifeStatsFromExamRanks, getEvolutionPaths, SUMMIT_MESSAGE, CHARACTER_CODE } from "@/lib/life-diagnosis";
+import { getCharacterResult, diagnoseFromScores, getEvolutionPaths, SUMMIT_MESSAGE, CHARACTER_CODE } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
 import Nav from "../../../components/Nav";
 
@@ -192,17 +192,8 @@ export default function LifeExamResultPage() {
     scores.forEach((row) => {
       scoreBySubject[row.subject_id] = Number(row.score);
     });
-    // 表示ランクと同じdeviation基準でキャラクター判定（score-based thresholdとの不整合を防ぐ）
-    const rankBySubjectId: Record<number, JudgementRank> = {};
-    scores.forEach((row) => {
-      const score = Number(row.score);
-      const st = comparisonStats?.subjects?.find((x) => x.subject_id === row.subject_id);
-      const dev =
-        deviationFromPopulation(score, st?.avg_same_gen ?? null, st?.stddev_same_gen ?? null) ??
-        subjectDeviationFromScore(score);
-      rankBySubjectId[row.subject_id] = getRankFromDeviation(dev);
-    });
-    const characterResult = runDiagnosis(lifeStatsFromExamRanks(rankBySubjectId));
+    // キャラクター判定はスコア絶対値ベースで統一
+    const characterResult = getCharacterResult(diagnoseFromScores(scoreBySubject));
     const worldShort = getWorldShort(characterResult.world);
     const totalScoreDisplay = Math.round((Number(attempt.total_score) / 500) * 900);
 
@@ -316,22 +307,15 @@ export default function LifeExamResultPage() {
 
   const subjectsSorted = [...subjects].sort((a, b) => a.id - b.id);
 
-  /** 科目別ランク（同世代比較、星マーク用） */
+  /** 科目別ランク（星マーク用）：絶対値ベース */
   const subjectRanks: Record<string, JudgementRank> = {};
-  const rankBySubjectId: Record<number, JudgementRank> = {};
   subjectsSorted.forEach((s) => {
     const score = Number(scoreBySubject[s.id] ?? 0);
-    const st = comparisonStats?.subjects?.find((x) => x.subject_id === s.id);
-    const dev =
-      deviationFromPopulation(score, st?.avg_same_gen ?? null, st?.stddev_same_gen ?? null) ??
-      subjectDeviationFromScore(score);
-    const rank = getRankFromDeviation(dev);
-    subjectRanks[getSubjectNameShort(s.code)] = rank;
-    rankBySubjectId[s.id] = rank;
+    subjectRanks[getSubjectNameShort(s.code)] = getRankFromDeviation(subjectDeviationFromScore(score));
   });
 
-  // 表示ランクと整合したdeviation基準でキャラクター判定
-  const characterResult = runDiagnosis(lifeStatsFromExamRanks(rankBySubjectId));
+  // キャラクター判定・進化パスはスコア絶対値ベースで統一
+  const characterResult = getCharacterResult(diagnoseFromScores(scoreBySubject));
   const evolutionPaths = getEvolutionPaths(characterResult.id);
   const characterReport = CHARACTER_REPORTS[characterResult.id];
 
