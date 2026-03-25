@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
+import { getRankFromDeviation } from "@/lib/life-exam/judgement";
+import { deviationFromPopulation, provisionalDeviationValue } from "@/lib/life-exam/constants";
 
-const SUBJECT_LABEL: Record<string, string> = {
-  income: "収入",
-  asset: "資産",
-  time: "時間",
-  relationship: "人間関係",
-  health: "健康",
-};
-
-const RANK_PERCENTILE: Record<string, string> = {
-  S: "上位3%",
-  A: "上位10%",
-  B: "上位25%",
-  C: "上位50%",
-  D: "下位25%",
-  E: "下位10%",
-  F: "下位3%",
+const RANK_MEANING: Record<string, string> = {
+  S: "同世代上位3%の圧倒的トップ層",
+  A: "同世代上位10%の上位層",
+  B: "同世代上位25%の準上位層",
+  C: "同世代平均層",
+  D: "同世代下位25%",
+  E: "同世代下位10%",
+  F: "同世代下位3%",
 };
 
 export async function POST(req: NextRequest) {
@@ -62,46 +56,74 @@ export async function POST(req: NextRequest) {
     supabase.from("life_exam_attempts").select("*").eq("id", attempt_id).single(),
     supabase.from("life_exam_scores").select("*").eq("attempt_id", attempt_id),
     supabase.from("life_exam_subjects").select("id, code, name_ja"),
-    supabase.from("life_exam_ranking_entries").select("character_name, character_code").eq("attempt_id", attempt_id).single(),
+    supabase
+      .from("life_exam_ranking_entries")
+      .select("character_name, character_code")
+      .eq("attempt_id", attempt_id)
+      .single(),
   ]);
 
   if (!attempt || !scores || !subjects) {
     return NextResponse.json({ error: "Attempt data not found" }, { status: 404 });
   }
 
-  // 比較統計を取得
+  // 比較統計を取得（偏差値・パーセンタイル計算に使用）
   const { data: statsData } = await supabase.rpc("get_life_exam_comparison_stats", {
     p_attempt_id: attempt_id,
   });
 
   type SubjectStat = {
     subject_id: number;
+    avg_same_gen: number | null;
+    stddev_same_gen: number | null;
     rank_same_gen: number;
     total_same_gen: number;
+    avg_all: number | null;
+    stddev_all: number | null;
     rank_all: number;
     total_all: number;
   };
   const stats: SubjectStat[] = (statsData as { subjects?: SubjectStat[] })?.subjects ?? [];
 
-  // プロンプト用データを構築
+  // subject ID → { code, name_ja }
   const subjectMap: Record<number, { code: string; name_ja: string }> = {};
   (subjects as { id: number; code: string; name_ja: string }[]).forEach((s) => {
     subjectMap[s.id] = { code: s.code, name_ja: s.name_ja };
   });
 
-  const scoreRows = (scores as { subject_id: number; score: number; rank?: string }[]).map((row) => {
+  // スコアごとにランク・パーセンタイルを正しく計算
+  const scoreRows = (scores as { subject_id: number; score: number }[]).map((row) => {
     const subj = subjectMap[row.subject_id];
     const st = stats.find((s) => s.subject_id === row.subject_id);
-    const rank = row.rank ?? "C";
-    const percentile =
-      st && st.total_same_gen > 0
-        ? `上位${Math.round((st.rank_same_gen / st.total_same_gen) * 100)}%`
-        : RANK_PERCENTILE[rank] ?? "—";
+
+    // 偏差値をレポートページと同じロジックで計算
+    const dev =
+      deviationFromPopulation(
+        row.score,
+        st?.avg_same_gen ?? st?.avg_all ?? null,
+        st?.stddev_same_gen ?? st?.stddev_all ?? null
+      ) ?? provisionalDeviationValue(row.score * 5);
+
+    const rank = getRankFromDeviation(dev);
+
+    // 上位X% の計算：rank=1 が最上位なので (total - rank + 1) / total * 100
+    let percentileText = RANK_MEANING[rank] ?? "";
+    if (st && st.total_same_gen > 0) {
+      const pctFromTop = Math.round(((st.rank_same_gen) / st.total_same_gen) * 100);
+      if (pctFromTop <= 50) {
+        percentileText = `同世代上位${pctFromTop}%`;
+      } else {
+        const pctFromBottom = Math.round(((st.total_same_gen - st.rank_same_gen) / st.total_same_gen) * 100);
+        percentileText = `同世代下位${pctFromBottom}%`;
+      }
+    }
+
     return {
-      name: subj?.name_ja ?? SUBJECT_LABEL[subj?.code ?? ""] ?? subj?.code ?? "不明",
+      name: subj?.name_ja ?? subj?.code ?? "不明",
       score: row.score,
       rank,
-      percentile,
+      dev: Math.round(dev * 10) / 10,
+      percentileText,
     };
   });
 
@@ -113,14 +135,14 @@ export async function POST(req: NextRequest) {
   const sameGenRank = attempt.same_gen_rank ?? null;
   const sameGenTotal = attempt.same_gen_total ?? null;
 
-  const ageBandText = ageBand ? `${ageBand.replace(/^(\d+).*/, "$1")}代` : "不明の年代";
+  const ageBandText = ageBand ? `${ageBand.replace(/^(\d+).*/, "$1")}代` : "年代不明";
   const genderText =
     gender === "male" || gender === "m" || gender === "男" ? "男性"
     : gender === "female" || gender === "f" || gender === "女" ? "女性"
-    : "不明の性別";
+    : "性別不明";
 
   const subjectLines = scoreRows
-    .map((r) => `  - ${r.name}：ランク${r.rank}（同世代${r.percentile}）`)
+    .map((r) => `  - ${r.name}：ランク${r.rank}（偏差値${r.dev}、${r.percentileText}）`)
     .join("\n");
 
   const rankingText =
@@ -136,21 +158,22 @@ export async function POST(req: NextRequest) {
 - キャラクター：${characterName}（コード：${characterCode}）
 - 属性：${ageBandText}・${genderText}
 - 同世代ランキング：${rankingText}
-- 5科目の詳細スコア：
+- 5科目の詳細スコア（ランクS=最高〜F=最低、偏差値50が平均）：
 ${subjectLines}
 
 【執筆ルール】
 1. 文章量：1500〜2000文字
 2. 構成：以下の4パートで書く
-   ① あなたの現在地（現状の強みと特徴を具体的に描写）
-   ② 見えていないリスク（現状から導かれる潜在的な課題）
-   ③ 次の一手（最も効果的な行動指針を1〜2点）
+   ① あなたの現在地（強い科目を具体的な数値で描写し、現状を正確に表現する）
+   ② 見えていないリスク（スコアが低い科目・弱点から導かれる潜在的な課題）
+   ③ 次の一手（最も弱い科目の改善に向けた行動指針を1〜2点）
    ④ あなたへのメッセージ（締めのパーソナルメッセージ）
-3. スコアの数値（パーセンタイルなど）を積極的に引用して説得力を持たせる
-4. キャラクター名は自然に2〜3回登場させる
-5. 上から目線・説教調にならず、寄り添うトーンで書く
-6. パートタイトルは「## ①〜」形式で記載する
-7. 各パートは段落（空行区切り）で読みやすく構成する
+3. 必ずデータ通りの内容を書くこと。ランクが高い科目を「課題」と表現してはいけない。ランクが低い科目を「強み」と表現してはいけない。
+4. スコアの数値（偏差値・パーセンタイル）を積極的に引用して説得力を持たせる
+5. キャラクター名は自然に2〜3回登場させる
+6. 上から目線・説教調にならず、寄り添うトーンで書く
+7. パートタイトルは「## ①〜」形式で記載する
+8. 各パートは段落（空行区切り）で読みやすく構成する
 
 それでは、上記データに基づいた個人分析レポートを書いてください。`;
 
