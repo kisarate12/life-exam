@@ -197,27 +197,28 @@ export default async function OgpGenPage({
           </div>
 
           {/* フッター */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderTop: `1px solid #E8DDD0`,
-              paddingTop: 18,
-              marginTop: 20,
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ marginTop: 20 }}>
+            {/* キャッチコピー（区切り線より上） */}
+            <span style={{ fontSize: 16, color, fontWeight: 800, display: "block", marginBottom: 12 }}>
+              あなたもやってみる →
+            </span>
+            {/* 区切り線 + サイト情報 */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderTop: `1px solid #E8DDD0`,
+                paddingTop: 12,
+              }}
+            >
               <span style={{ fontSize: 14, color: "#9A9290" }}>
                 人生診断 — あなたの人生を、相対評価する。
               </span>
-              <span style={{ fontSize: 16, color, fontWeight: 800 }}>
-                あなたもやってみる →
+              <span style={{ fontSize: 15, color, fontWeight: 700 }}>
+                #人生診断
               </span>
             </div>
-            <span style={{ fontSize: 15, color, fontWeight: 700 }}>
-              #人生診断
-            </span>
           </div>
         </div>
       </div>
