@@ -10,7 +10,7 @@ import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-e
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
-import { runDiagnosis, lifeStatsFromExamRanks, getCharacterResult, getEvolutionPaths, CHARACTER_CODE } from "@/lib/life-diagnosis";
+import { runDiagnosis, lifeStatsFromExamRanks, getCharacterResult, getEvolutionPaths, CHARACTER_CODE, diagnoseFromScores } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
 import Nav from "../../../../components/Nav";
 import { StatusRadarChart } from "../StatusRadarChart";
@@ -514,7 +514,10 @@ export default function ReportPage() {
   const characterReport = CHARACTER_REPORTS[characterResult.id];
   const characterCode = CHARACTER_CODE[characterResult.id] ?? "";
 
-  const evolutionPaths = getEvolutionPaths(characterResult.id);
+  // 進化パスはスコア絶対値ベースのキャラクターIDで計算する
+  // （ランク基準の判定では人間関係BでもMBLH扱いになり進化先がずれるため）
+  const scoreBasedCharId = diagnoseFromScores(scoreBySubject);
+  const evolutionPaths = getEvolutionPaths(scoreBasedCharId);
 
   // 4軸スライダー計算
   const axisSliders = AXIS_DEFS.map((axis) => {
