@@ -48,8 +48,6 @@ export default async function OgpGenPage({
   const color = WORLD_COLOR[def.world] ?? "#F57550";
   const worldName = WORLD_NAME[def.world] ?? def.world;
   const imageSrc = `/life-diagnosis/characters/${encodeURIComponent(def.name)}.png`;
-  // 最初の文末（。）までを説明文として使用
-  const shortDesc = def.description.split("\n")[0] ?? def.description;
   const keyword = CHARACTER_KEYWORD[characterId] ?? "";
 
   return (
@@ -172,19 +170,31 @@ export default async function OgpGenPage({
             {def.name}
           </h1>
 
-          {/* 説明文 */}
-          <p
+          {/* 説明文（最大4行） */}
+          <div
             style={{
-              fontSize: 19,
-              color: "#555566",
-              lineHeight: 1.8,
-              margin: 0,
               flex: 1,
-              whiteSpace: "pre-line",
+              minWidth: 0,
+              overflow: "hidden",
             }}
           >
-            {shortDesc}
-          </p>
+            <p
+              style={{
+                fontSize: 19,
+                color: "#555566",
+                lineHeight: 1.8,
+                margin: 0,
+                whiteSpace: "pre-line",
+                wordBreak: "break-all",
+                display: "-webkit-box",
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {def.description}
+            </p>
+          </div>
 
           {/* フッター */}
           <div
