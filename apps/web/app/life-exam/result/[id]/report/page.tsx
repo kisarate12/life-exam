@@ -257,6 +257,7 @@ export default function ReportPage() {
   const [activeChapter, setActiveChapter] = useState<string>(CHAPTERS[0].id);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -669,6 +670,21 @@ export default function ReportPage() {
 
   // resultSummary の段落分割
   const summaryParagraphs = characterReport?.resultSummary.split("\n\n") ?? [];
+
+  // SNS シェア URL
+  const reportUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/life-exam/result/${id}/report`
+    : "";
+  const shareXText = `「${characterResult.name}」の人生診断レポートを公開しました。あなたは何タイプ？👇\n#人生診断`;
+  const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareXText)}&url=${encodeURIComponent(reportUrl)}`;
+  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(reportUrl)}&text=${encodeURIComponent(`「${characterResult.name}」の人生診断レポートです #人生診断`)}`;
+
+  async function handleCopyLink() {
+    if (!reportUrl) return;
+    await navigator.clipboard.writeText(reportUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <div className="min-h-screen relative z-10">
@@ -1189,6 +1205,59 @@ export default function ReportPage() {
           </Link>
         </div>
       </main>
+
+      {/* ── フローティング SNS シェアボタン ──────────────────────────────── */}
+      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3">
+        <span className="text-[10px] font-bold text-[#9A9290] tracking-widest" style={{ writingMode: "vertical-rl" }}>
+          SHARE
+        </span>
+
+        {/* X（旧 Twitter） */}
+        <a
+          href={shareXUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Xでシェア"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white shadow-md transition hover:opacity-75 active:scale-95"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.743l7.727-8.822L1.254 2.25H8.08l4.259 5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+        </a>
+
+        {/* LINE */}
+        <a
+          href={shareLineUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LINEでシェア"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition hover:opacity-75 active:scale-95"
+          style={{ background: "#06C755" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden>
+            <path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.16 1.84 5.94 4.6 7.66-.18.66-.68 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.4-1.62 3.38-2.28.77.11 1.57.17 2.43.17 5.52 0 10-3.92 10-8.64C22 5.92 17.52 2 12 2z"/>
+          </svg>
+        </a>
+
+        {/* リンクコピー */}
+        <button
+          onClick={handleCopyLink}
+          aria-label="リンクをコピー"
+          className="flex h-10 w-10 items-center justify-center rounded-full shadow-md transition hover:opacity-75 active:scale-95"
+          style={{ background: copied ? "#43756B" : "#F5F0EB", color: copied ? "white" : "#9A9290" }}
+        >
+          {copied ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
