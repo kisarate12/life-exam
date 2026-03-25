@@ -39,14 +39,6 @@ export default function Nav() {
           <Link href="/life-exam/guide" className={`rounded-lg px-3 py-1.5 text-sm ${linkClass("/life-exam/guide")}`}>
             解説
           </Link>
-          <a
-            href="https://lin.ee/3nGM5xuo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`rounded-lg px-3 py-1.5 text-sm ${linkClass("")}`}
-          >
-            LINEで相談
-          </a>
         </div>
       </nav>
     </header>
