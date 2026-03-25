@@ -633,18 +633,9 @@ export default function LifeExamResultPage() {
             </div>
             {/* キャラクター名 */}
             <div className="text-center" style={{ marginBottom: 16 }}>
-              <div className="inline-flex items-center gap-1.5 mb-1">
-                <span className="rounded-full px-2 py-0.5 text-xs font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace" }}>
-                  {CHARACTER_CODE[characterResult.id]}
-                </span>
-                <Link
-                  href="/life-exam/guide"
-                  className="flex items-center justify-center w-4 h-4 rounded-full transition hover:opacity-70 leading-none"
-                  style={{ background: "#D8D0C8", color: "white", fontSize: 10, fontWeight: 700, fontFamily: "serif", fontStyle: "italic" }}
-                  title="コードの読み方を見る"
-                  aria-label="コードの読み方を見る"
-                >i</Link>
-              </div>
+              <span className="inline-block mb-1 rounded-full px-2 py-0.5 text-xs font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace" }}>
+                {CHARACTER_CODE[characterResult.id]}
+              </span>
               <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>
                 {characterResult.name}
               </h2>
