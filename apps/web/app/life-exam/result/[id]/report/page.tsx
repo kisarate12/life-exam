@@ -81,9 +81,9 @@ function CircularScoreIndicator({ subjectName, rank }: { subjectName: string; ra
   const dashLength = (fill / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="relative" style={{ width: 68, height: 68 }}>
-        <svg width="68" height="68" viewBox="0 0 68 68">
+    <div className="flex flex-col items-center gap-1 w-full">
+      <div className="relative w-full" style={{ aspectRatio: "1" }}>
+        <svg width="100%" height="100%" viewBox="0 0 68 68">
           {/* 背景円 */}
           <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E8DDD0" strokeWidth={6} />
           {/* スコア円弧 */}
@@ -754,7 +754,7 @@ export default function ReportPage() {
             <h3 className="mb-3 text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
               科目別ランク
             </h3>
-            <div className="flex justify-around rounded-xl border border-[#E8DDD0] bg-white px-2 py-4">
+            <div className="grid grid-cols-5 gap-1 rounded-xl border border-[#E8DDD0] bg-white px-3 py-4">
               {rowsForDisplay.map((row) => (
                 <CircularScoreIndicator key={row.subjectName} subjectName={row.subjectName} rank={row.rank} />
               ))}
