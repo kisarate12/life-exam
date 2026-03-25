@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Inter:wght@700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    background: var(--bg-base, #1a1a2e);
+    color: #fff;
+    position: relative;
+  }
+
+  .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 45%, var(--bg-glow1, rgba(245, 117, 80, 0.22)) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 30% at 50% 55%, var(--bg-glow2, rgba(255, 184, 78, 0.15)) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-base, #1a1a2e) 0%, var(--bg-mid, #16213e) 50%, var(--bg-base, #1a1a2e) 100%);
+  }
+
+  /* セーフゾーン: top 200px / bottom 400px */
+  .content {
+    position: absolute;
+    top: 200px;
+    left: 0;
+    right: 0;
+    height: 1320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 80px;
+    gap: 0;
+  }
+
+  /* --- 上段テキスト --- */
+  .lead {
+    font-size: 38px;
+    font-weight: 700;
+    color: rgba(255,255,255, 0.7);
+    text-align: center;
+    line-height: 1.8;
+    letter-spacing: 0.04em;
+  }
+
+  /* --- メイン見出し --- */
+  .headline {
+    margin-top: 48px;
+    font-size: 64px;
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.5;
+    color: #fff;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+  .headline .hl {
+    background: var(--accent-gradient, linear-gradient(135deg, #FFB84E 0%, #F57550 100%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 12px var(--accent-shadow, rgba(245, 117, 80, 0.5)));
+  }
+
+  /* --- 矢印 --- */
+  .arrow {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .arrow-line {
+    width: 4px;
+    height: 100px;
+    background: linear-gradient(180deg, transparent, rgba(255, 184, 78, 0.8));
+    border-radius: 2px;
+  }
+  .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 28px solid rgba(255, 184, 78, 0.8);
+  }
+
+  /* --- CTAボタン風 --- */
+  .cta-button {
+    margin-top: 48px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 28px 64px;
+    border-radius: 60px;
+    background: var(--accent-gradient, linear-gradient(145deg, #FFB84E, #F57550));
+    box-shadow:
+      0 8px 32px var(--accent-shadow, rgba(245, 117, 80, 0.4)),
+      0 0 60px var(--bg-glow2, rgba(255, 184, 78, 0.15));
+    font-size: 40px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* --- 補足テキスト --- */
+  .sub-text {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .sub-text .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 24px;
+    border-radius: 30px;
+    border: 1.5px solid rgba(255,255,255, 0.2);
+    background: rgba(255,255,255, 0.06);
+    font-size: 26px;
+    font-weight: 700;
+    color: rgba(255,255,255, 0.7);
+  }
+
+  /* --- 下部ロゴ --- */
+  .bottom-accent {
+    position: absolute;
+    bottom: 380px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: rgba(255,255,255, 0.35);
+    letter-spacing: 0.3em;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <div class="content">
+    <div class="lead">
+      あなたの人生は<br>
+      どの世界の住人？
+    </div>
+
+    <div class="headline">
+      診断は<br>
+      <span class="hl">プロフィールリンク</span><br>
+      から
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+    </div>
+
+    <div class="cta-button">
+      3分 ・ 25問 ・ 無料
+    </div>
+
+    <div class="sub-text">
+      <span class="badge">☀️ 空</span>
+      <span class="badge">🌊 海</span>
+      <span class="badge">🌿 地上</span>
+      <span class="badge">💀 闇</span>
+    </div>
+  </div>
+
+  <div class="bottom-accent">LIFE DIAGNOSIS</div>
+</body>
+</html>

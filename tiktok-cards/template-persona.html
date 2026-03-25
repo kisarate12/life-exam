@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Inter:wght@700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    background: var(--bg-base, #1a1a2e);
+    color: #fff;
+    position: relative;
+  }
+
+  .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 35%, var(--bg-glow1, rgba(255, 184, 78, 0.15)) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 30% 65%, var(--bg-glow2, rgba(245, 117, 80, 0.10)) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-base, #1a1a2e) 0%, var(--bg-mid, #16213e) 50%, var(--bg-base, #1a1a2e) 100%);
+  }
+
+  /* セーフゾーン: top 200px / bottom 400px */
+  .content {
+    position: absolute;
+    top: 200px;
+    left: 0;
+    right: 0;
+    height: 1320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 60px;
+  }
+
+  /* --- キャラ情報ヘッダー --- */
+  .char-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .char-thumb-wrap {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+  }
+  .char-thumb-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      var(--ring-color1, rgba(255, 184, 78, 0.5)),
+      var(--ring-color2, rgba(245, 117, 80, 0.3)),
+      var(--ring-color1, rgba(255, 184, 78, 0.5))
+    );
+    filter: blur(2px);
+  }
+  .char-thumb {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255, 0.07);
+    border: 2px solid rgba(255,255,255, 0.12);
+    padding: 8px;
+  }
+  .char-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .char-header-code {
+    font-family: 'Inter', monospace;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--accent-text, rgba(255, 184, 78, 0.8));
+  }
+  .char-header-name {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  /* --- 区切り線 --- */
+  .divider {
+    margin-top: 48px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255, 0.15), transparent);
+  }
+
+  /* --- キャッチライン --- */
+  .catchline {
+    margin-top: 60px;
+    text-align: center;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.4;
+    color: #fff;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+  .catchline .hl {
+    background: var(--accent-gradient, linear-gradient(135deg, #FFB84E 0%, #F57550 100%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 12px var(--accent-shadow, rgba(245, 117, 80, 0.5)));
+  }
+
+  /* --- 具体的な説明 --- */
+  .persona-desc {
+    margin-top: 64px;
+    text-align: center;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.8;
+    color: rgba(255,255,255, 0.85);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .persona-desc .hl {
+    color: var(--accent-text, #FFB84E);
+  }
+
+  /* --- 引用風の一言 --- */
+  .quote-wrap {
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .quote-line {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-text, rgba(255, 184, 78, 0.6)), transparent);
+    border-radius: 2px;
+  }
+  .quote {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent-text, #FFB84E);
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+  }
+  .quote::before { content: '"'; }
+  .quote::after  { content: '"'; }
+
+  .bottom-accent {
+    position: absolute;
+    bottom: 380px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: rgba(255,255,255, 0.35);
+    letter-spacing: 0.3em;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <div class="content">
+    <div class="char-header">
+      <div class="char-thumb-wrap">
+        <img class="char-thumb" id="charImg" src="" alt="">
+      </div>
+      <div class="char-header-text">
+        <div class="char-header-code" id="charCode"></div>
+        <div class="char-header-name" id="charName"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="catchline" id="catchline">
+      お金はないが<br>
+      <span class="hl">圧倒的に時間がある</span><br>
+      タイプ
+    </div>
+
+    <div class="persona-desc" id="personaDesc">
+      実家ぐらしのニートか、<br>
+      旦那の金で遊ぶ主婦が該当する。
+    </div>
+
+    <div class="quote-wrap">
+      <div class="quote-line"></div>
+      <div class="quote" id="quote">月を眺める余裕がある自由人</div>
+    </div>
+  </div>
+
+  <div class="bottom-accent">LIFE DIAGNOSIS</div>
+</body>
+</html>

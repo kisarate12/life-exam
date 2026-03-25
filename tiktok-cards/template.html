@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Inter:wght@700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    background: var(--bg-base, #1a1a2e);
+    color: #fff;
+    position: relative;
+  }
+
+  /* --- 背景グラデーション --- */
+  .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 30%, var(--bg-glow1, rgba(123, 108, 62, 0.35)) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 70%, var(--bg-glow2, rgba(245, 117, 80, 0.15)) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-base, #1a1a2e) 0%, var(--bg-mid, #16213e) 50%, var(--bg-base, #1a1a2e) 100%);
+  }
+
+  /* --- セーフゾーン可視化（デバッグ用、本番では非表示） --- */
+  .safe-zone-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 200px;
+    /* border-bottom: 2px dashed rgba(255,0,0,0.3); */
+  }
+  .safe-zone-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 400px;
+    /* border-top: 2px dashed rgba(255,0,0,0.3); */
+  }
+
+  /* --- メインコンテンツ (y: 200 ~ 1520) --- */
+  .content {
+    position: absolute;
+    top: 200px;
+    left: 0;
+    right: 0;
+    height: 1320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 60px;
+  }
+
+  /* --- 世界タグ --- */
+  .world-tag {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(123, 108, 62, 0.3);
+    border: 1.5px solid rgba(123, 108, 62, 0.6);
+    border-radius: 40px;
+    padding: 10px 32px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #d4c090;
+    letter-spacing: 0.05em;
+  }
+  .world-tag .icon { font-size: 28px; }
+
+  /* --- コードタグ --- */
+  .code-tag {
+    margin-top: 28px;
+    font-family: 'Inter', monospace;
+    font-size: 96px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    background: var(--accent-gradient, linear-gradient(135deg, #FFB84E 0%, #F57550 50%, #FFB84E 100%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 4px 20px var(--accent-shadow, rgba(245, 117, 80, 0.4)));
+  }
+
+  /* --- キャラクター画像 --- */
+  .character-image-wrapper {
+    margin-top: 24px;
+    position: relative;
+    width: 360px;
+    height: 360px;
+  }
+  .character-image-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      rgba(123, 108, 62, 0.6),
+      rgba(245, 117, 80, 0.4),
+      rgba(255, 184, 78, 0.6),
+      rgba(123, 108, 62, 0.6)
+    );
+    filter: blur(2px);
+  }
+  .character-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255, 0.08);
+    border: 4px solid rgba(255,255,255, 0.15);
+    padding: 16px;
+  }
+
+  /* --- キャラクター名 --- */
+  .character-name {
+    margin-top: 20px;
+    font-size: 56px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  }
+
+  /* --- ステータスバー --- */
+  .stats {
+    margin-top: 36px;
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .stat-label {
+    width: 150px;
+    text-align: right;
+    font-size: 30px;
+    font-weight: 700;
+    color: rgba(255,255,255, 0.85);
+    flex-shrink: 0;
+  }
+  .stat-bar-bg {
+    flex: 1;
+    height: 36px;
+    background: rgba(255,255,255, 0.1);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 18px;
+    transition: width 0.5s ease;
+  }
+  .stat-bar-fill.high {
+    background: linear-gradient(90deg, #43756B, #5CAF9E);
+    box-shadow: 0 0 16px rgba(92, 175, 158, 0.4);
+  }
+  .stat-bar-fill.low {
+    background: linear-gradient(90deg, #F57550, #FF8F6B);
+    box-shadow: 0 0 16px rgba(245, 117, 80, 0.4);
+  }
+  .stat-rank {
+    width: 50px;
+    font-family: 'Inter', monospace;
+    font-size: 30px;
+    font-weight: 900;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .stat-rank.high { color: #5CAF9E; }
+  .stat-rank.low  { color: #F57550; }
+
+  /* --- コメント --- */
+  .comment {
+    margin-top: 40px;
+    max-width: 800px;
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.7;
+    color: rgba(255,255,255, 0.9);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .comment .highlight,
+  .comment .hl {
+    color: var(--accent-text, #FFB84E);
+  }
+
+  /* --- 下部装飾 --- */
+  .bottom-accent {
+    position: absolute;
+    bottom: 380px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.3em;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <div class="safe-zone-top"></div>
+  <div class="safe-zone-bottom"></div>
+
+  <div class="content">
+    <div class="world-tag">
+      <span class="icon">🌿</span>
+      <span>地上の世界</span>
+    </div>
+
+    <div class="code-tag">MBCH</div>
+
+    <div class="character-image-wrapper">
+      <img class="character-image" id="charImg" src="" alt="ドワーフの王">
+    </div>
+
+    <div class="character-name">ドワーフの王</div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <span class="stat-label">資産</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill high" style="width:85%"></div></div>
+        <span class="stat-rank high">A</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">収入</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill high" style="width:80%"></div></div>
+        <span class="stat-rank high">A</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">人間関係</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill high" style="width:72%"></div></div>
+        <span class="stat-rank high">B</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">時間</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill low" style="width:30%"></div></div>
+        <span class="stat-rank low">D</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">健康</span>
+        <div class="stat-bar-bg"><div class="stat-bar-fill high" style="width:75%"></div></div>
+        <span class="stat-rank high">B</span>
+      </div>
+    </div>
+
+    <div class="comment">
+      お金も健康も人間関係も完璧。<br>
+      でも<span class="highlight">「時間」</span>だけが足りない。<br>
+      あと一つ手に入れれば、<br>
+      あなたは<span class="highlight">頂点</span>に立てる。
+    </div>
+  </div>
+
+  <div class="bottom-accent">LIFE DIAGNOSIS</div>
+</body>
+</html>
