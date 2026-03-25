@@ -111,6 +111,14 @@ async function handleFollow(event: {
     );
   }
 
+  // AI分析を非同期生成
+  const generateUrl = `${WEB_BASE_URL}/api/life-exam/generate-ai-analysis`;
+  fetch(generateUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: attemptId }),
+  }).catch(() => {});
+
   const reportUrl = `${WEB_BASE_URL}/life-exam/result/${attemptId}/report`;
   const message = characterName
     ? (CHARACTER_MESSAGE[characterName] ?? `「${characterName}」の診断結果はこちら！`)
@@ -196,6 +204,14 @@ async function handleMessage(event: {
     .from("life_exam_report_tokens")
     .update({ used_at: new Date().toISOString() })
     .eq("token", text);
+
+  // AI分析を非同期生成（失敗しても返信は続ける）
+  const generateUrl = `${WEB_BASE_URL}/api/life-exam/generate-ai-analysis`;
+  fetch(generateUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ attempt_id: tokenRow.attempt_id }),
+  }).catch(() => {});
 
   const reportUrl = `${WEB_BASE_URL}/life-exam/result/${tokenRow.attempt_id}/report`;
   await client.replyMessage({

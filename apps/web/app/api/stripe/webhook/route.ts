@@ -48,6 +48,14 @@ export async function POST(req: NextRequest) {
       console.error("[Stripe webhook] DB upsert failed:", error);
       return NextResponse.json({ error: "DB error" }, { status: 500 });
     }
+
+    // AI分析を非同期生成
+    const webBaseUrl = process.env.WEB_BASE_URL ?? "https://life-exam.vercel.app";
+    fetch(`${webBaseUrl}/api/life-exam/generate-ai-analysis`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attempt_id }),
+    }).catch(() => {});
   }
 
   return NextResponse.json({ received: true });

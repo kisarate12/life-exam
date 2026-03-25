@@ -254,6 +254,8 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeChapter, setActiveChapter] = useState<string>(CHAPTERS[0].id);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -289,7 +291,7 @@ export default function ReportPage() {
         supabase.from("life_exam_attempts").select("*").eq("id", id).single(),
         supabase.from("life_exam_scores").select("*").eq("attempt_id", id),
         supabase.from("life_exam_subjects").select("id, code, name_ja"),
-        supabase.from("life_exam_report_purchases").select("attempt_id").eq("attempt_id", id).maybeSingle(),
+        supabase.from("life_exam_report_purchases").select("attempt_id, ai_analysis").eq("attempt_id", id).maybeSingle(),
       ]);
 
       if (attemptErr || !attemptData) {
@@ -304,6 +306,10 @@ export default function ReportPage() {
 
       if (purchaseData) {
         await loadComparisonStats(id);
+        const purchase = purchaseData as { attempt_id: string; ai_analysis?: string | null };
+        if (purchase.ai_analysis) {
+          setAiAnalysis(purchase.ai_analysis);
+        }
         setIsPurchased(true);
         setLoading(false);
       } else if (purchasedParam) {
@@ -324,9 +330,13 @@ export default function ReportPage() {
     let timerId: ReturnType<typeof setTimeout>;
 
     const poll = async () => {
-      const { data } = await supabase.from("life_exam_report_purchases").select("attempt_id").eq("attempt_id", id).maybeSingle();
+      const { data } = await supabase.from("life_exam_report_purchases").select("attempt_id, ai_analysis").eq("attempt_id", id).maybeSingle();
       if (data) {
         await loadComparisonStats(id);
+        const purchase = data as { attempt_id: string; ai_analysis?: string | null };
+        if (purchase.ai_analysis) {
+          setAiAnalysis(purchase.ai_analysis);
+        }
         setIsPurchased(true);
         setPollingPurchase(false);
         return;
@@ -344,6 +354,24 @@ export default function ReportPage() {
     return () => clearTimeout(timerId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pollingPurchase, id]);
+
+  // AI分析をオンデマンドで生成・取得
+  useEffect(() => {
+    if (!isPurchased || !id || aiAnalysis) return;
+    setIsLoadingAnalysis(true);
+    fetch("/api/life-exam/generate-ai-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attempt_id: id }),
+    })
+      .then((r) => r.json())
+      .then((data: { analysis?: string }) => {
+        if (data.analysis) setAiAnalysis(data.analysis);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingAnalysis(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPurchased, id]);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
@@ -710,6 +738,46 @@ export default function ReportPage() {
               </div>
 
             </>
+          )}
+        </section>
+
+        {/* ── AI個人分析 ───────────────────────────────────────────────────────── */}
+        <section className="card-rpg mt-6 p-4 sm:p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#6B66A3" }}>AI</span>
+            <h2 className="section-header text-lg">🔮 あなただけの人生分析</h2>
+          </div>
+          <p className="mb-4 text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+            あなたの回答データをもとにAIが生成した、パーソナライズされた分析レポートです
+          </p>
+
+          {isLoadingAnalysis ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div className="h-8 w-8 rounded-full border-4 border-[#F0EBE3] border-t-[#6B66A3]" style={{ animation: "spin 0.8s linear infinite" }} />
+              <p className="text-sm text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>AIが分析中です... （30秒ほどかかります）</p>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : aiAnalysis ? (
+            <div className="space-y-4 text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", lineHeight: 2.0 }}>
+              {aiAnalysis.split(/\n\n+/).map((block, i) => {
+                if (block.startsWith("## ")) {
+                  return (
+                    <h3
+                      key={i}
+                      className="mt-5 first:mt-0 font-bold text-[#333333]"
+                      style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 15, borderBottom: "1px solid #E8DDD0", paddingBottom: 6 }}
+                    >
+                      {block.replace(/^## /, "")}
+                    </h3>
+                  );
+                }
+                return <p key={i}>{block}</p>;
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-[#9A9290] text-center py-4" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+              分析の生成に失敗しました。ページを再読み込みしてください。
+            </p>
           )}
         </section>
 
