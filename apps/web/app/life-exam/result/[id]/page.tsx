@@ -6,8 +6,9 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LifeExamAttempt, LifeExamScore, LifeExamSubject } from "@/lib/life-exam/types";
-import { getRankFromDeviation } from "@/lib/life-exam/judgement";
+import { getRankFromDeviation, getRankFromScore } from "@/lib/life-exam/judgement";
 import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-exam/constants";
+import { SUBJECT_ID_TO_CODE } from "@/lib/life-exam/examV2Questions";
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { getWorldLabelDisplay, getWorldDisplay, getWorldShort } from "@/lib/life-exam/worldDisplay";
@@ -311,7 +312,10 @@ export default function LifeExamResultPage() {
   const subjectRanks: Record<string, JudgementRank> = {};
   subjectsSorted.forEach((s) => {
     const score = Number(scoreBySubject[s.id] ?? 0);
-    subjectRanks[getSubjectNameShort(s.code)] = getRankFromDeviation(subjectDeviationFromScore(score));
+    const subjectCode = SUBJECT_ID_TO_CODE[s.id];
+    subjectRanks[getSubjectNameShort(s.code)] = subjectCode
+      ? getRankFromScore(score, subjectCode)
+      : getRankFromDeviation(subjectDeviationFromScore(score));
   });
 
   // キャラクター判定・進化パスはスコア絶対値ベースで統一

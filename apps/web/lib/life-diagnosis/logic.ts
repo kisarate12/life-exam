@@ -267,14 +267,26 @@ export function runDiagnosis(stats: LifeStats): CharacterResult {
  * subject_id: 1=資産, 2=収入, 3=人間関係, 4=時間, 5=健康
  */
 export const SCORE_THRESHOLDS = {
-  /** 金融: max(sub1_資産, sub2_収入) >= この値で M（資産中央値=54 に基づく） */
-  financial: 54,
-  /** 時間: sub4 >= この値で F（中央値=53 に基づく） */
-  time: 53,
-  /** 人間関係: sub3 >= この値で C（中央値=54 に基づく） */
-  relationship: 54,
-  /** 健康: sub5 >= この値で H（サンプルデータのため実データ取得後に再評価予定） */
-  health: 65,
+  /** 金融: max(sub1_資産, sub2_収入) >= この値で M（収入B閾値=55 を採用） */
+  financial: 55,
+  /** 時間: sub4 >= この値で F（時間B閾値=62） */
+  time: 62,
+  /** 人間関係: sub3 >= この値で C（人間関係B閾値=55） */
+  relationship: 55,
+  /** 健康: sub5 >= この値で H（健康B閾値=60） */
+  health: 60,
+} as const;
+
+/** アマテラス判定の上位閾値（全軸これ以上でアマテラス、未達はイカロス） */
+export const SCORE_THRESHOLDS_HIGH = {
+  /** 金融: A閾値（収入A=68） */
+  financial: 68,
+  /** 時間: A閾値=78 */
+  time: 78,
+  /** 人間関係: A閾値=72 */
+  relationship: 72,
+  /** 健康: A閾値=78 */
+  health: 78,
 } as const;
 
 /** 4文字コード → CharacterId（quick 診断と同じ体系） */
@@ -290,11 +302,11 @@ const SCORE_CODE_TO_CHARACTER: Record<string, CharacterId> = {
  * subject_id: 1=資産, 2=収入, 3=人間関係, 4=時間, 5=健康
  */
 export function diagnoseFromScores(scoreBySubjectId: Record<number, number>): CharacterId {
-  const asset       = scoreBySubjectId[1] ?? 0;
-  const income      = scoreBySubjectId[2] ?? 0;
+  const asset        = scoreBySubjectId[1] ?? 0;
+  const income       = scoreBySubjectId[2] ?? 0;
   const relationship = scoreBySubjectId[3] ?? 0;
-  const time        = scoreBySubjectId[4] ?? 0;
-  const health      = scoreBySubjectId[5] ?? 0;
+  const time         = scoreBySubjectId[4] ?? 0;
+  const health       = scoreBySubjectId[5] ?? 0;
 
   const financial = Math.max(asset, income);
   const m = financial    >= SCORE_THRESHOLDS.financial    ? "M" : "P";
@@ -302,7 +314,19 @@ export function diagnoseFromScores(scoreBySubjectId: Record<number, number>): Ch
   const c = relationship >= SCORE_THRESHOLDS.relationship ? "C" : "L";
   const h = health       >= SCORE_THRESHOLDS.health       ? "H" : "S";
 
-  return SCORE_CODE_TO_CHARACTER[`${m}${f}${c}${h}`] ?? "mosquito";
+  const code = `${m}${f}${c}${h}`;
+
+  // MFCH（全軸クリア）の場合、上位閾値をすべて超えていればアマテラス、未達ならイカロス
+  if (code === "MFCH") {
+    const isAmaterasu =
+      financial    >= SCORE_THRESHOLDS_HIGH.financial    &&
+      time         >= SCORE_THRESHOLDS_HIGH.time         &&
+      relationship >= SCORE_THRESHOLDS_HIGH.relationship &&
+      health       >= SCORE_THRESHOLDS_HIGH.health;
+    return isAmaterasu ? "amaterasu" : "icarus";
+  }
+
+  return SCORE_CODE_TO_CHARACTER[code] ?? "mosquito";
 }
 
 export function runDiagnosisFromScores(scoreBySubjectId: Record<number, number>): CharacterResult {

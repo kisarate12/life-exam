@@ -45,44 +45,32 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
     {
       label: "現在の借金はいくらですか？（住宅ローン・カードローン等含む）",
       options: [
-        { label: "0円", points: 30 },
-        { label: "1〜299万円", points: 24 },
-        { label: "300〜999万円", points: 18 },
-        { label: "1000〜2999万円", points: 9 },
+        { label: "0円", points: 40 },
+        { label: "1〜299万円", points: 32 },
+        { label: "300〜999万円", points: 22 },
+        { label: "1000〜2999万円", points: 10 },
         { label: "3000万円以上", points: 0 },
-      ],
-    },
-    {
-      label: "現在の月の生活費はいくらですか？（現在の生活水準）",
-      options: [
-        { label: "60万円以上", points: 0 },
-        { label: "45〜59万円", points: 3 },
-        { label: "35〜44万円", points: 6 },
-        { label: "25〜34万円", points: 10 },
-        { label: "18〜24万円", points: 14 },
-        { label: "12〜17万円", points: 17 },
-        { label: "12万円未満", points: 20 },
-      ],
-    },
-    {
-      label: "収入がゼロになった場合の最低限の月生活費はいくらですか？",
-      options: [
-        { label: "40万円以上", points: 0 },
-        { label: "30〜39万円", points: 8 },
-        { label: "20〜29万円", points: 18 },
-        { label: "15〜19万円", points: 26 },
-        { label: "10〜14万円", points: 34 },
-        { label: "10万円未満", points: 40 },
       ],
     },
     {
       label: "あなたの金融資産のうちすぐ現金化できる割合はどの程度ですか？",
       options: [
-        { label: "90%以上", points: 10 },
-        { label: "70〜89%", points: 8 },
-        { label: "50〜69%", points: 6 },
-        { label: "30〜49%", points: 3 },
+        { label: "90%以上", points: 30 },
+        { label: "70〜89%", points: 24 },
+        { label: "50〜69%", points: 18 },
+        { label: "30〜49%", points: 8 },
         { label: "30%未満", points: 0 },
+      ],
+    },
+    {
+      label: "収入がゼロになった場合、現在の資産で何ヶ月生活できますか？",
+      options: [
+        { label: "5年以上（60ヶ月以上）", points: 30 },
+        { label: "2〜5年（24〜59ヶ月）", points: 24 },
+        { label: "1〜2年（12〜23ヶ月）", points: 16 },
+        { label: "6〜11ヶ月", points: 8 },
+        { label: "3〜5ヶ月", points: 3 },
+        { label: "3ヶ月未満", points: 0 },
       ],
     },
   ],
@@ -90,86 +78,75 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
     {
       label: "あなたの現在の個人年収はいくらですか？",
       options: [
-        { label: "2000万円以上", points: 50 },
-        { label: "1500〜1999万円", points: 46 },
-        { label: "1000〜1499万円", points: 42 },
-        { label: "800〜999万円", points: 35 },
-        { label: "600〜799万円", points: 28 },
-        { label: "400〜599万円", points: 18 },
-        { label: "400万円未満", points: 8 },
+        { label: "3000万円以上", points: 100 },
+        { label: "2000〜2999万円", points: 90 },
+        { label: "1500〜1999万円", points: 80 },
+        { label: "1000〜1499万円", points: 68 },
+        { label: "800〜999万円", points: 58 },
+        { label: "700〜799万円", points: 52 },
+        { label: "600〜699万円", points: 46 },
+        { label: "500〜599万円", points: 38 },
+        { label: "400〜499万円", points: 30 },
+        { label: "300〜399万円", points: 20 },
+        { label: "200〜299万円", points: 10 },
+        { label: "200万円未満", points: 4 },
         { label: "無収入", points: 0 },
       ],
     },
     {
       label: "今後5年で年収が大きく伸びる可能性はどの程度ありますか？",
       options: [
-        { label: "ほぼ確実に大幅増", points: 40 },
-        { label: "高い確率で増加", points: 30 },
-        { label: "緩やかに増加", points: 20 },
-        { label: "横ばい", points: 10 },
+        { label: "ほぼ確実に大幅増", points: 30 },
+        { label: "高い確率で増加", points: 22 },
+        { label: "緩やかに増加", points: 14 },
+        { label: "横ばい", points: 7 },
         { label: "減少可能性あり", points: 0 },
       ],
     },
     {
       label: "あなたのスキルの希少性はどの程度ですか？",
       options: [
-        { label: "極めて希少（国内でも少数）", points: 40 },
-        { label: "高度専門職レベル", points: 30 },
-        { label: "専門職レベル", points: 20 },
-        { label: "汎用職レベル", points: 10 },
+        { label: "極めて希少（国内でも少数）", points: 30 },
+        { label: "高度専門職レベル", points: 22 },
+        { label: "専門職レベル", points: 15 },
+        { label: "汎用職レベル", points: 7 },
         { label: "代替可能性が高い", points: 0 },
       ],
     },
     {
       label: "収入源はいくつありますか？",
       options: [
-        { label: "3つ以上", points: 30 },
-        { label: "2つ", points: 20 },
-        { label: "1つのみ", points: 10 },
+        { label: "3つ以上", points: 20 },
+        { label: "2つ", points: 14 },
+        { label: "1つのみ", points: 7 },
         { label: "なし", points: 0 },
       ],
     },
     {
       label: "収入を自分の裁量で増減できますか？",
       options: [
-        { label: "自由に増減できる（価格決定権あり）", points: 40 },
-        { label: "副業などで増やせる", points: 30 },
-        { label: "残業などで増やせる", points: 20 },
-        { label: "会社依存", points: 10 },
+        { label: "自由に増減できる（価格決定権あり）", points: 20 },
+        { label: "副業などで増やせる", points: 15 },
+        { label: "残業などで増やせる", points: 10 },
+        { label: "会社依存", points: 5 },
         { label: "ほぼ不可能", points: 0 },
       ],
     },
   ],
   social: [
+    // ── 恋愛（50pt）──
     {
-      label: "【恋愛Q1】現在安定したパートナー関係がありますか？",
+      label: "【恋愛Q1】現在の恋愛・パートナー関係の状況は？",
       options: [
-        { label: "長期的に安定している", points: 25 },
-        { label: "交際中（安定傾向）", points: 20 },
-        { label: "交際中（不安定）", points: 10 },
-        { label: "現在いない", points: 0 },
+        { label: "長期的に安定している", points: 20 },
+        { label: "交際中（安定傾向）", points: 16 },
+        { label: "交際中（不安定）", points: 8 },
+        { label: "独身だが積極的に求めている", points: 6 },
+        { label: "独身で当面望まない", points: 4 },
       ],
     },
     {
-      label: "【恋愛Q2】現在の関係（または直近の関係）への満足度",
-      options: [
-        { label: "非常に満足", points: 15 },
-        { label: "概ね満足", points: 10 },
-        { label: "やや不満", points: 5 },
-        { label: "不満が強い", points: 0 },
-      ],
-    },
-    {
-      label: "【恋愛Q3】精神的に支え合える関係だと感じますか？",
-      options: [
-        { label: "強く感じる", points: 15 },
-        { label: "ある程度感じる", points: 10 },
-        { label: "あまり感じない", points: 5 },
-        { label: "感じない", points: 0 },
-      ],
-    },
-    {
-      label: "【恋愛Q4】パートナーに弱みを見せられますか？",
+      label: "【恋愛Q2】最も親密な関係で、本音や弱みを見せられますか？（対象：パートナー・最も近い異性）",
       options: [
         { label: "完全に見せられる", points: 15 },
         { label: "ある程度見せられる", points: 10 },
@@ -178,24 +155,43 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
       ],
     },
     {
-      label: "【恋愛Q5】恋愛に関する孤独感の頻度",
+      label: "【恋愛Q3】恋愛・パートナーシップに関する孤独感や不満を感じますか？",
       options: [
         { label: "ほぼ感じない", points: 15 },
-        { label: "時々ある", points: 10 },
+        { label: "時々ある", points: 8 },
         { label: "頻繁にある", points: 0 },
       ],
     },
+    // ── 友人（50pt）──
     {
-      label: "【ボンディングQ1】何でも本音で相談できる友人は何人いますか？",
+      label: "【友人Q1】何でも本音で相談できる友人は何人いますか？",
       options: [
         { label: "3人以上", points: 20 },
         { label: "2人", points: 15 },
-        { label: "1人", points: 10 },
+        { label: "1人", points: 8 },
         { label: "0人", points: 0 },
       ],
     },
     {
-      label: "【ボンディングQ2】家族との関係性は？",
+      label: "【友人Q2】緊急時に無条件で助けてくれる友人はいますか？",
+      options: [
+        { label: "複数いる", points: 15 },
+        { label: "1人いる", points: 8 },
+        { label: "いない", points: 0 },
+      ],
+    },
+    {
+      label: "【友人Q3】友人との関係の深さ・頻度はどうですか？",
+      options: [
+        { label: "定期的に深く交流している", points: 15 },
+        { label: "時々深く交流している", points: 10 },
+        { label: "浅い交流のみ", points: 5 },
+        { label: "ほぼ交流なし", points: 0 },
+      ],
+    },
+    // ── 家族（50pt）──
+    {
+      label: "【家族Q1】家族（親・兄弟・配偶者・子など）との関係は？",
       options: [
         { label: "非常に良好", points: 20 },
         { label: "概ね良好", points: 15 },
@@ -204,35 +200,29 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
       ],
     },
     {
-      label: "【ボンディングQ3】緊急時に無条件で助けてくれる人はいますか？",
+      label: "【家族Q2】困ったとき、家族に本音で頼れますか？",
       options: [
-        { label: "複数いる", points: 15 },
-        { label: "1人いる", points: 10 },
-        { label: "ほぼいない", points: 0 },
+        { label: "迷わず頼れる", points: 15 },
+        { label: "ある程度頼れる", points: 10 },
+        { label: "あまり頼れない", points: 5 },
+        { label: "頼れない", points: 0 },
       ],
     },
     {
-      label: "【ボンディングQ4】あなたは他者から信頼されていると感じますか？",
+      label: "【家族Q3】家族から精神的サポートを受けていると感じますか？",
       options: [
-        { label: "強く感じる", points: 10 },
-        { label: "ある程度感じる", points: 7 },
-        { label: "あまり感じない", points: 3 },
+        { label: "強く感じる", points: 15 },
+        { label: "ある程度感じる", points: 10 },
+        { label: "あまり感じない", points: 5 },
         { label: "感じない", points: 0 },
       ],
     },
-    {
-      label: "【ボンディングQ5】強い孤独感を感じる頻度",
-      options: [
-        { label: "ほぼ感じない", points: 10 },
-        { label: "時々ある", points: 5 },
-        { label: "頻繁にある", points: 0 },
-      ],
-    },
+    // ── ブリッジング（50pt）──
     {
       label: "【ブリッジングQ1】会社・学校以外で継続的に関わるコミュニティはありますか？",
       options: [
-        { label: "3つ以上", points: 10 },
-        { label: "2つ", points: 7 },
+        { label: "3つ以上", points: 15 },
+        { label: "2つ", points: 10 },
         { label: "1つ", points: 5 },
         { label: "ない", points: 0 },
       ],
@@ -240,8 +230,8 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
     {
       label: "【ブリッジングQ2】自分とは異なる業界・価値観の人と定期的に交流がありますか？",
       options: [
-        { label: "頻繁にある", points: 10 },
-        { label: "時々ある", points: 5 },
+        { label: "頻繁にある", points: 15 },
+        { label: "時々ある", points: 8 },
         { label: "ほとんどない", points: 0 },
       ],
     },
@@ -266,9 +256,11 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
     {
       label: "【可処分Q1】週の労働時間（残業含む）",
       options: [
-        { label: "35時間未満", points: 25 },
-        { label: "35〜45時間", points: 20 },
-        { label: "46〜55時間", points: 3 },
+        { label: "20時間未満", points: 25 },
+        { label: "20〜34時間", points: 22 },
+        { label: "35〜40時間", points: 18 },
+        { label: "41〜45時間", points: 12 },
+        { label: "46〜55時間", points: 5 },
         { label: "56時間以上", points: 0 },
       ],
     },
@@ -421,11 +413,11 @@ export const EXAM_V2_QUESTIONS: Record<SubjectCode, QuestionDef[]> = {
 
 /** 科目ごとの満点（合計）。正規化時に使用 */
 export const EXAM_V2_SUBJECT_MAX_POINTS: Record<SubjectCode, number> = {
-  financial: 200,   // 100+30+20+40+10
-  human: 200,       // 50+40+40+30+40
-  social: 200,      // 恋愛85+ボンディング75+ブリッジング40
-  time: 200,        // 80+120
-  psychological: 100, // 50+50
+  financial: 200,   // 100+40+30+30
+  human: 200,       // 100+30+30+20+20
+  social: 200,      // 恋愛50+友人50+家族50+ブリッジング50
+  time: 200,        // 可処分80+裁量120
+  psychological: 100, // 身体50+精神50
 };
 
 export const EXAM_V2_SUBJECT_ORDER: SubjectCode[] = [

@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LifeExamAttempt, LifeExamScore, LifeExamSubject } from "@/lib/life-exam/types";
-import { getRankFromDeviation } from "@/lib/life-exam/judgement";
+import { getRankFromDeviation, getRankFromScore } from "@/lib/life-exam/judgement";
 import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-exam/constants";
+import { SUBJECT_ID_TO_CODE } from "@/lib/life-exam/examV2Questions";
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
@@ -466,13 +467,15 @@ export default function ReportPage() {
   const comparisonRowsDetailed = subjectsSorted.map((s) => {
     const score = Number(scoreBySubject[s.id] ?? 0);
     const st = comparisonStats?.subjects?.find((x) => x.subject_id === s.id);
-    // ランク判定は絶対値ベース（スコア暫定偏差値）で安定させる
-    const rankDev = subjectDeviationFromScore(score);
-    const rank = getRankFromDeviation(rankDev);
+    // ランク判定は絶対値ベース（科目別スコア閾値）で安定させる
+    const subjectCode = SUBJECT_ID_TO_CODE[s.id];
+    const rank = subjectCode
+      ? getRankFromScore(score, subjectCode)
+      : getRankFromDeviation(subjectDeviationFromScore(score));
     // 比較バー・偏差値表示は人口統計データを優先使用
     const dev =
       deviationFromPopulation(score, st?.avg_same_gen ?? null, st?.stddev_same_gen ?? null) ??
-      rankDev;
+      subjectDeviationFromScore(score);
     const sameGenPercent = st && st.total_same_gen > 0 ? formatPercentile(st.rank_same_gen, st.total_same_gen) : "—";
     const allPercent = st && st.total_all > 0 ? formatPercentile(st.rank_all, st.total_all) : "—";
     const sameGenRankText = st && st.total_same_gen > 0 ? `${st.total_same_gen}人中${st.rank_same_gen}位` : null;

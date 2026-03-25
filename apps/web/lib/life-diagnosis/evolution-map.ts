@@ -22,6 +22,9 @@ export const SUMMIT_MESSAGE =
 
 export const CHARACTER_CODE: Record<CharacterId, string> = {
   amaterasu:    "MFCH",
+  // icarus は amaterasu の後に定義 → CODE_TO_ID["MFCH"] = "icarus" に上書きされる
+  // （下位閾値クリアで MFCH になった場合はイカロスへ誘導するため）
+  icarus:       "MFCH",
   king:         "MFLH",
   egyptian_cat: "MFCS",
   kaiko:        "MFLS",
@@ -85,6 +88,26 @@ export interface EvolutionPaths {
  * // downgrades: 人間関係→wanderer, 健康→hyena
  */
 export function getEvolutionPaths(currentId: CharacterId): EvolutionPaths {
+  // イカロス専用：全軸を上位閾値まで上げればアマテラス、1軸落ちれば隣接キャラへ
+  if (currentId === "icarus") {
+    return {
+      upgrades: [
+        {
+          dimension: "全軸強化",
+          icon: "✨",
+          target: getCharacterResult("amaterasu"),
+        },
+      ],
+      downgrades: [
+        { dimension: "金融",     icon: "💰", target: getCharacterResult("tsukuyomi")    }, // M→P: PFCH
+        { dimension: "時間",     icon: "⏰", target: getCharacterResult("dwarf_king")   }, // F→B: MBCH
+        { dimension: "人間関係", icon: "🤝", target: getCharacterResult("king")         }, // C→L: MFLH
+        { dimension: "健康",     icon: "💊", target: getCharacterResult("egyptian_cat") }, // H→S: MFCS
+      ],
+      isSummit: false,
+    };
+  }
+
   const code = CHARACTER_CODE[currentId];
   const upgrades: EvolutionPath[] = [];
   const downgrades: EvolutionPath[] = [];

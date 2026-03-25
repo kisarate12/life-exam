@@ -14,7 +14,7 @@ export interface LifeStats {
 }
 
 export const CHARACTER_IDS = [
-  "amaterasu", "king", "egyptian_cat", "kaiko",
+  "amaterasu", "icarus", "king", "egyptian_cat", "kaiko",
   "tsukuyomi", "noble", "namakemono", "snail",
   "dwarf_king", "knight", "tanuki", "beetle",
   "goblin_king", "wanderer", "hyena", "mosquito",

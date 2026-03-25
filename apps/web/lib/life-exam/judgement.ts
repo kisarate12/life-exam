@@ -4,6 +4,7 @@
  */
 
 import { PASS_DEVIATION_THRESHOLD } from "./constants";
+import type { SubjectCode } from "./types";
 
 export type JudgementRank = "S" | "A" | "B" | "C" | "D" | "E" | "F";
 
@@ -114,4 +115,25 @@ export function getPassProbability(deviationScore: number): number {
 export function getPointsToPassLine(totalScore: number): number {
   const PASS_TOTAL = 375;
   return Math.round((PASS_TOTAL - totalScore) * 10) / 10;
+}
+
+/** 科目別絶対評価ランク閾値（スコア 0-100 ベース） */
+export const SUBJECT_RANK_THRESHOLDS: Record<SubjectCode, { S: number; A: number; B: number; C: number; D: number; E: number }> = {
+  financial:     { S: 88, A: 73, B: 58, C: 43, D: 29, E: 14 },
+  human:         { S: 82, A: 68, B: 55, C: 42, D: 28, E: 14 },
+  social:        { S: 89, A: 72, B: 55, C: 41, D: 27, E: 13 },
+  time:          { S: 90, A: 78, B: 62, C: 46, D: 31, E: 15 },
+  psychological: { S: 90, A: 78, B: 60, C: 45, D: 30, E: 15 },
+};
+
+/** 科目別絶対評価でランクを返す */
+export function getRankFromScore(score: number, subjectCode: SubjectCode): JudgementRank {
+  const t = SUBJECT_RANK_THRESHOLDS[subjectCode];
+  if (score >= t.S) return "S";
+  if (score >= t.A) return "A";
+  if (score >= t.B) return "B";
+  if (score >= t.C) return "C";
+  if (score >= t.D) return "D";
+  if (score >= t.E) return "E";
+  return "F";
 }

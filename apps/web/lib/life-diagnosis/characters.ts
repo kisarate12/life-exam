@@ -8,6 +8,12 @@ export const CHARACTER_DEFINITIONS: Record<
   CharacterId,
   { name: string; world: string; description: string }
 > = {
+  icarus: {
+    name: "イカロス",
+    world: "空の世界の住人",
+    description:
+      "4つの翼を広げ、太陽神アマテラスへ向かって飛ぶ者。\nお金・時間・人間関係・健康、すべてを手にしているように見えるが、その翼のどこかに微かな綻びがある。このまま昇り続ければ神になれる——しかし綻びが広がれば奈落へ落ちていく。あなたの翼は本物か？",
+  },
   amaterasu: {
     name: "アマテラスオオミカミ",
     world: "空の世界の住人",

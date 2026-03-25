@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
-import { getRankFromDeviation } from "@/lib/life-exam/judgement";
+import { getRankFromDeviation, getRankFromScore } from "@/lib/life-exam/judgement";
 import { deviationFromPopulation, provisionalDeviationValue } from "@/lib/life-exam/constants";
+import { SUBJECT_ID_TO_CODE } from "@/lib/life-exam/examV2Questions";
 
 const RANK_MEANING: Record<string, string> = {
   S: "同世代上位3%の圧倒的トップ層",
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     const subj = subjectMap[row.subject_id];
     const st = stats.find((s) => s.subject_id === row.subject_id);
 
-    // 偏差値をレポートページと同じロジックで計算
+    // 偏差値をレポートページと同じロジックで計算（比較表示用）
     const dev =
       deviationFromPopulation(
         row.score,
@@ -104,7 +105,11 @@ export async function POST(req: NextRequest) {
         st?.stddev_same_gen ?? st?.stddev_all ?? null
       ) ?? provisionalDeviationValue(row.score * 5);
 
-    const rank = getRankFromDeviation(dev);
+    // ランク判定は科目別絶対評価スコア閾値を使用
+    const subjectCode = SUBJECT_ID_TO_CODE[row.subject_id];
+    const rank = subjectCode
+      ? getRankFromScore(row.score, subjectCode)
+      : getRankFromDeviation(dev);
 
     // 上位X% の計算：rank=1 が最上位なので (total - rank + 1) / total * 100
     let percentileText = RANK_MEANING[rank] ?? "";
