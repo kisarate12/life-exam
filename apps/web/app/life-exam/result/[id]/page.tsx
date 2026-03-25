@@ -639,15 +639,11 @@ export default function LifeExamResultPage() {
                 </span>
                 <Link
                   href="/life-exam/guide"
-                  className="flex items-center justify-center w-4 h-4 rounded-full transition hover:opacity-70"
-                  style={{ background: "#D8D0C8" }}
+                  className="flex items-center justify-center w-4 h-4 rounded-full transition hover:opacity-70 leading-none"
+                  style={{ background: "#D8D0C8", color: "white", fontSize: 10, fontWeight: 700, fontFamily: "serif", fontStyle: "italic" }}
                   title="コードの読み方を見る"
                   aria-label="コードの読み方を見る"
-                >
-                  <svg width="9" height="9" viewBox="0 0 10 10" fill="white" aria-hidden>
-                    <text x="2.5" y="8.5" fontSize="9" fontWeight="bold" fontFamily="sans-serif">i</text>
-                  </svg>
-                </Link>
+                >i</Link>
               </div>
               <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>
                 {characterResult.name}
