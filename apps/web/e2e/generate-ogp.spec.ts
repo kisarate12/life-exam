@@ -12,8 +12,9 @@ import fs from "fs";
 
 const CHARACTER_IDS = [
   "amaterasu",
+  "icarus",
   "king",
-  "lion",
+  "egyptian_cat",
   "kaiko",
   "tsukuyomi",
   "noble",
@@ -24,7 +25,7 @@ const CHARACTER_IDS = [
   "tanuki",
   "beetle",
   "goblin_king",
-  "serf",
+  "wanderer",
   "hyena",
   "mosquito",
 ] as const;
