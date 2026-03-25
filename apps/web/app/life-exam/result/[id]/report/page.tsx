@@ -627,7 +627,7 @@ export default function ReportPage() {
               onClick={handlePurchase}
               disabled={isPurchasing}
               className="w-full rounded-2xl px-5 py-3.5 text-center transition hover:brightness-105 disabled:opacity-50 active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #FFF3EE, #FFF8F0)", border: "1.5px solid #F8C5A0" }}
+              style={{ background: "linear-gradient(135deg, #FFE8DC, #FFF0E0)", border: "1.5px solid #F5956A" }}
             >
               <p className="text-sm font-bold text-[#F57550]">{isPurchasing ? "移動中..." : "¥980 で今すぐ購入する"}</p>
               <p className="mt-0.5 text-xs text-[#C0906A]">登録不要・すぐに閲覧できます</p>
