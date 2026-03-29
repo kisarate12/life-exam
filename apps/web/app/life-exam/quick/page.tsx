@@ -51,7 +51,7 @@ const QUESTIONS = [
 
 // MFCH形式コード → キャラクターID
 const CODE_TO_CHARACTER: Record<string, CharacterId> = {
-  MFCH: "amaterasu",  MFLH: "king",
+  MFCH: "icarus",     MFLH: "king",
   MFCS: "egyptian_cat", MFLS: "kaiko",
   PFCH: "tsukuyomi",  PFLH: "noble",
   PFCS: "namakemono", PFLS: "snail",

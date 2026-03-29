@@ -42,7 +42,7 @@ const WORLDS = [
     code: "MF",
     description: "お金も時間も手にした、最上位の世界。物質的には何不自由ない状態だが、その先に何を見るかが問われる。",
     characters: [
-      { code: "MFCH", name: "アマテラスオオミカミ", desc: "すべてが揃った人生の頂点。" },
+      { code: "MFCH", name: "イカロス", desc: "4つの翼を広げ、頂点へ向かって飛ぶ者。" },
       { code: "MFLH", name: "孤独な大王",           desc: "豊かさの中に、つながりだけが欠ける。" },
       { code: "MFCS", name: "スフィンクス",         desc: "知恵と余裕を持つが、健康が影を落とす。" },
       { code: "MFLS", name: "カイコ",               desc: "繭の中の豊かさ。外とのつながりが薄い。" },
@@ -77,7 +77,7 @@ const WORLDS = [
     bg: "#FFFBF0",
   },
   {
-    name: "やみのせかい",
+    name: "闇の世界",
     code: "PB",
     description: "お金も時間も手薄な、最も厳しい世界。だが、ここにいる者は強い。這い上がる力を持っている。",
     characters: [

@@ -12,10 +12,10 @@ const CHARACTER_GALLERY = [
     color: "#4A90D9",
     bg: "rgba(74,144,217,0.08)",
     chars: [
-      { name: "アマテラスオオミカミ", desc: "全資本が揃った完全なる自由人" },
-      { name: "孤独な大王", desc: "お金も時間も健康も揃っているのに、誰も隣にいない王" },
-      { name: "スフィンクス", desc: "お金も時間も仲間も揃っているが、健康だけが悲鳴を上げる" },
-      { name: "カイコ", desc: "豊かな繭の中で世界から切り離された存在" },
+      { name: "イカロス", code: "MFCH", desc: "4つの翼を広げ、頂点へ向かって飛ぶ者。あと一歩で神になれる" },
+      { name: "孤独な大王", code: "MFLH", desc: "お金も時間も健康も揃っているのに、誰も隣にいない王" },
+      { name: "スフィンクス", code: "MFCS", desc: "お金も時間も仲間も揃っているが、健康だけが悲鳴を上げる" },
+      { name: "カイコ", code: "MFLS", desc: "豊かな繭の中で世界から切り離された存在" },
     ],
   },
   {
@@ -23,10 +23,10 @@ const CHARACTER_GALLERY = [
     color: "#1B6B93",
     bg: "rgba(27,107,147,0.08)",
     chars: [
-      { name: "ツクヨミ", desc: "時間の自由を手にした月の住人" },
-      { name: "没落貴族", desc: "財産は失ったが品格と余裕は本物の自由人" },
-      { name: "ナマケモノ", desc: "のんびり生きるからこそ見えてくるものがある" },
-      { name: "カタツムリ", desc: "時間だけはたっぷり、でもそれだけ" },
+      { name: "ツクヨミ", code: "PFCH", desc: "時間の自由を手にした月の住人" },
+      { name: "没落貴族", code: "PFLH", desc: "財産は失ったが品格と余裕は本物の自由人" },
+      { name: "ナマケモノ", code: "PFCS", desc: "のんびり生きるからこそ見えてくるものがある" },
+      { name: "カタツムリ", code: "PFLS", desc: "時間だけはたっぷり、でもそれだけ" },
     ],
   },
   {
@@ -34,21 +34,21 @@ const CHARACTER_GALLERY = [
     color: "#2D7D2D",
     bg: "rgba(45,125,45,0.08)",
     chars: [
-      { name: "ドワーフの王", desc: "時間さえあれば完璧な王" },
-      { name: "騎士", desc: "カレンダーに空白がない勇者" },
-      { name: "タヌキ", desc: "器用に生きて大切なものとすり替わった" },
-      { name: "フンコロガシ", desc: "お金だけ積み上がり他が消えた" },
+      { name: "ドワーフの王", code: "MBCH", desc: "時間さえあれば完璧な王" },
+      { name: "騎士", code: "MBLH", desc: "カレンダーに空白がない勇者" },
+      { name: "タヌキ", code: "MBCS", desc: "器用に生きて大切なものとすり替わった" },
+      { name: "フンコロガシ", code: "MBLS", desc: "お金だけ積み上がり他が消えた" },
     ],
   },
   {
-    world: "冥界",
+    world: "闇の世界",
     color: "#6B3FA0",
     bg: "rgba(107,63,160,0.08)",
     chars: [
-      { name: "オークの族長", desc: "貧しくても今日も誰かと笑える" },
-      { name: "流れ者", desc: "健康な体一つで荷物を持たずどこへでも行ける" },
-      { name: "ハイエナ", desc: "厳しい状況でも粘り強く生き延びる" },
-      { name: "蚊", desc: "全てが底をついた、ここからがスタート" },
+      { name: "オークの族長", code: "PBCH", desc: "貧しくても今日も誰かと笑える" },
+      { name: "流れ者", code: "PBLH", desc: "健康な体一つで荷物を持たずどこへでも行ける" },
+      { name: "ハイエナ", code: "PBCS", desc: "厳しい状況でも粘り強く生き延びる" },
+      { name: "蚊", code: "PBLS", desc: "全てが底をついた、ここからがスタート" },
     ],
   },
 ];
@@ -274,7 +274,13 @@ export default function LifeExamPage() {
                         />
                       </div>
                       <p
-                        className="mt-3 font-bold text-[var(--theme-text)]"
+                        className="mt-3 font-mono font-bold tracking-widest"
+                        style={{ fontSize: "clamp(10px, 1.8vw, 12px)", color: group.color, opacity: 0.7 }}
+                      >
+                        {char.code}
+                      </p>
+                      <p
+                        className="mt-0.5 font-bold text-[var(--theme-text)]"
                         style={{ fontSize: "clamp(12px, 2.5vw, 15px)" }}
                       >
                         {char.name}

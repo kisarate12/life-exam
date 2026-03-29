@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080, height=1920">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Inter:wght@700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    background: var(--bg-base, #1a1a2e);
+    color: #fff;
+    position: relative;
+  }
+
+  .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 90% 50% at 50% 30%, var(--bg-glow1, rgba(255, 184, 78, 0.15)) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 70% 70%, var(--bg-glow2, rgba(245, 117, 80, 0.10)) 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg-base, #1a1a2e) 0%, var(--bg-mid, #16213e) 50%, var(--bg-base, #1a1a2e) 100%);
+  }
+
+  .content {
+    position: absolute;
+    top: 150px;
+    left: 0;
+    right: 0;
+    bottom: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 30px;
+  }
+
+  .category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--tag-bg, rgba(245, 117, 80, 0.15));
+    border: 1.5px solid var(--tag-border, rgba(245, 117, 80, 0.4));
+    border-radius: 40px;
+    padding: 10px 32px;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--tag-color, #FF9A76);
+    letter-spacing: 0.06em;
+  }
+
+  .title {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1.25;
+    color: #fff;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  }
+  .title .hl {
+    background: var(--accent-gradient, linear-gradient(135deg, #FFB84E 0%, #F57550 100%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 16px var(--accent-shadow, rgba(245, 117, 80, 0.5)));
+  }
+
+  .tier-list {
+    margin-top: 28px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tier-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 140px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .tier-label {
+    width: 110px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 60px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+  }
+  .tier-label.s { background: linear-gradient(135deg, #FF4444, #FF6B6B); }
+  .tier-label.a { background: linear-gradient(135deg, #FF8C00, #FFB84E); }
+  .tier-label.b { background: linear-gradient(135deg, #FFD700, #FFEB3B); color: #333; }
+  .tier-label.c { background: linear-gradient(135deg, #4CAF50, #66BB6A); }
+  .tier-label.d { background: linear-gradient(135deg, #2196F3, #42A5F5); }
+  .tier-label.f { background: linear-gradient(135deg, #666, #888); }
+
+  .tier-chars {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255,255,255, 0.04);
+    min-height: 140px;
+    flex-wrap: wrap;
+  }
+
+  .tier-char {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 108px;
+  }
+
+  .tier-char-img-wrap {
+    position: relative;
+    width: 88px;
+    height: 88px;
+  }
+  .tier-char-img-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      var(--ring-color1, rgba(255, 184, 78, 0.4)),
+      var(--ring-color2, rgba(245, 117, 80, 0.2)),
+      var(--ring-color1, rgba(255, 184, 78, 0.4))
+    );
+    filter: blur(1px);
+  }
+  .tier-char img {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255, 0.06);
+    border: 2px solid rgba(255,255,255, 0.10);
+    padding: 6px;
+  }
+  .tier-char-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: rgba(255,255,255, 0.85);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .footer-text {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 34px;
+    font-weight: 700;
+    color: rgba(255,255,255, 0.65);
+    line-height: 1.6;
+  }
+  .footer-text .hl {
+    color: var(--accent-text, #FFB84E);
+  }
+
+  .bottom-accent {
+    position: absolute;
+    bottom: 330px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: rgba(255,255,255, 0.35);
+    letter-spacing: 0.3em;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <div class="content">
+    <div class="category-tag">人生診断 16タイプ</div>
+
+    <div class="title" id="title">
+      人生<span class="hl">幸福度</span><br>ティアリスト
+    </div>
+
+    <div class="tier-list" id="tierList">
+      <!-- JS で動的生成 -->
+    </div>
+
+    <div class="footer-text" id="footerText">
+      あなたは<span class="hl">どのティア</span>？<br>
+      保存して友達にも送ろう
+    </div>
+  </div>
+
+  <div class="bottom-accent">LIFE DIAGNOSIS</div>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { LifeExamAttempt, LifeExamScore, LifeExamSubject } from "@/lib/life-exam/types";
 import { getRankFromDeviation, getRankFromScore } from "@/lib/life-exam/judgement";
@@ -228,10 +228,7 @@ function formatPercentile(rank: number, total: number): string {
 
 export default function ReportPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const id = params?.id as string | undefined;
-  const purchasedParam = searchParams?.get("purchased") === "1";
-
   const [attempt, setAttempt] = useState<LifeExamAttempt | null>(null);
   const [scores, setScores] = useState<LifeExamScore[]>([]);
   const [subjects, setSubjects] = useState<LifeExamSubject[]>([]);
@@ -248,10 +245,6 @@ export default function ReportPage() {
       total_same_gen: number;
     }>;
   } | null>(null);
-  const [isPurchased, setIsPurchased] = useState<boolean | null>(null);
-  const [isPurchasing, setIsPurchasing] = useState(false);
-  const [pollingPurchase, setPollingPurchase] = useState(false);
-  const [pollingFailed, setPollingFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeChapter, setActiveChapter] = useState<string>(CHAPTERS[0].id);
@@ -306,60 +299,23 @@ export default function ReportPage() {
       setScores((scoresData as LifeExamScore[]) ?? []);
       setSubjects((subjectsData as LifeExamSubject[]) ?? []);
 
+      // AI分析がある場合はセット
       if (purchaseData) {
-        await loadComparisonStats(id);
         const purchase = purchaseData as { attempt_id: string; ai_analysis?: string | null };
         if (purchase.ai_analysis) {
           setAiAnalysis(purchase.ai_analysis);
         }
-        setIsPurchased(true);
-        setLoading(false);
-      } else if (purchasedParam) {
-        setIsPurchased(false);
-        setLoading(false);
-        setPollingPurchase(true);
-      } else {
-        setIsPurchased(false);
-        setLoading(false);
       }
+
+      await loadComparisonStats(id);
+      setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  useEffect(() => {
-    if (!pollingPurchase || !id) return;
-    let attempts = 0;
-    let timerId: ReturnType<typeof setTimeout>;
-
-    const poll = async () => {
-      const { data } = await supabase.from("life_exam_report_purchases").select("attempt_id, ai_analysis").eq("attempt_id", id).maybeSingle();
-      if (data) {
-        await loadComparisonStats(id);
-        const purchase = data as { attempt_id: string; ai_analysis?: string | null };
-        if (purchase.ai_analysis) {
-          setAiAnalysis(purchase.ai_analysis);
-        }
-        setIsPurchased(true);
-        setPollingPurchase(false);
-        return;
-      }
-      attempts++;
-      if (attempts >= 5) {
-        setPollingPurchase(false);
-        setPollingFailed(true);
-        return;
-      }
-      timerId = setTimeout(poll, 2000);
-    };
-
-    timerId = setTimeout(poll, 2000);
-    return () => clearTimeout(timerId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pollingPurchase, id]);
-
   // AI分析をオンデマンドで生成・取得
   useEffect(() => {
-    if (!isPurchased || !id || aiAnalysis) return;
+    if (!id || aiAnalysis) return;
     setIsLoadingAnalysis(true);
     fetch("/api/life-exam/generate-ai-analysis", {
       method: "POST",
@@ -373,7 +329,7 @@ export default function ReportPage() {
       .catch(() => {})
       .finally(() => setIsLoadingAnalysis(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPurchased, id]);
+  }, [id]);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
@@ -388,26 +344,7 @@ export default function ReportPage() {
       observers.push(obs);
     });
     return () => observers.forEach((o) => o.disconnect());
-  }, [isPurchased]);
-
-  const handlePurchase = async () => {
-    if (!id || isPurchasing) return;
-    setIsPurchasing(true);
-    try {
-      const res = await fetch("/api/life-exam/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ attempt_id: id }),
-      });
-      const { url, error: apiError } = await res.json();
-      if (apiError || !url) { alert("決済ページの取得に失敗しました。しばらくしてからお試しください。"); return; }
-      window.location.href = url;
-    } catch {
-      alert("エラーが発生しました。しばらくしてからお試しください。");
-    } finally {
-      setIsPurchasing(false);
-    }
-  };
+  }, [loading]);
 
   const spinnerJsx = (msg: string) => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
@@ -420,28 +357,6 @@ export default function ReportPage() {
   );
 
   if (loading) return spinnerJsx("読み込んでいます...");
-  if (pollingPurchase) return spinnerJsx("決済を確認中...");
-
-  if (pollingFailed) {
-    return (
-      <div className="min-h-screen relative z-10">
-        <Nav />
-        <main className="mx-auto max-w-2xl px-4 py-20">
-          <div className="card-rpg p-8 text-center">
-            <p className="mb-2 text-base font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-              決済の確認に時間がかかっています
-            </p>
-            <p className="mb-6 text-sm text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", lineHeight: 1.8 }}>
-              決済が完了している場合、数分後に再度このページを開いてください。
-            </p>
-            <Link href={`/life-exam/result/${id}`} className="inline-block rounded-xl px-6 py-3 text-sm font-bold text-white" style={{ background: "#F57550" }}>
-              結果ページに戻る
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   if (error || !attempt) {
     return (
@@ -578,95 +493,6 @@ export default function ReportPage() {
       total: attempt.same_gen_gender_total,
     },
   ];
-
-  // 未購入 → 2択UI表示
-  if (!isPurchased) {
-    return (
-      <div className="min-h-screen flex flex-col relative z-10">
-        <Nav />
-        <main className="flex-1 flex items-center justify-center px-4 py-10">
-          <div className="w-full max-w-sm">
-
-            {/* キャラクター + タイトル */}
-            <div className="text-center mb-5">
-              <div className="relative inline-block mb-3">
-                <img
-                  src={characterResult.imagePath}
-                  alt={characterResult.name}
-                  className="w-20 h-20 object-contain"
-                  style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.12))" }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-                <span
-                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full text-sm"
-                  style={{ background: "#FFF3EE", border: "1.5px solid #E8DDD0" }}
-                >🔒</span>
-              </div>
-              <h2
-                className="text-lg font-bold text-[#333333]"
-                style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}
-              >
-                「{characterResult.name}」の詳細レポート
-              </h2>
-              <p className="mt-1 text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                診断結果をさらに深掘りした分析レポートです
-              </p>
-            </div>
-
-            {/* コンテンツ一覧 */}
-            <div className="card-rpg px-4 py-3 mb-5">
-              {[
-                ["📊", "5科目の詳細パーセンタイル分析"],
-                ["🏆", "全国・同世代・同性別ランキング"],
-                ["🤝", "相性の良いキャラクター診断"],
-                ["⚔️", "あなた専用の改善クエスト"],
-              ].map(([icon, label]) => (
-                <div key={label} className="flex items-center gap-2.5 py-2 border-b border-[#F0EBE5] last:border-0">
-                  <span className="text-base leading-none">{icon}</span>
-                  <span className="text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* LINE CTA（メイン） */}
-            <a
-              href={`/api/life-exam/line-redirect?attempt_id=${id}`}
-              className="flex flex-col items-center justify-center gap-1 w-full rounded-2xl px-5 py-4 text-white transition hover:brightness-110 active:scale-[0.98]"
-              style={{ background: "#06C755", boxShadow: "0 4px 20px rgba(6,199,85,0.4)" }}
-            >
-              <div className="flex items-center gap-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden>
-                  <path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.16 1.84 5.94 4.6 7.66-.18.66-.68 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.4-1.62 3.38-2.28.77.11 1.57.17 2.43.17 5.52 0 10-3.92 10-8.64C22 5.92 17.52 2 12 2z"/>
-                </svg>
-                <span className="text-base font-bold text-white">LINE友達追加で無料で見る</span>
-                <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold" style={{ color: "#06C755" }}>無料</span>
-              </div>
-              <span className="text-xs text-white opacity-75">友達追加するだけ・30秒で完了</span>
-            </a>
-
-            {/* 区切り */}
-            <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 border-t border-[#E8DDD0]" />
-              <span className="text-xs text-[#C0B8B0]">または</span>
-              <div className="flex-1 border-t border-[#E8DDD0]" />
-            </div>
-
-            {/* 980円 CTA（サブ） */}
-            <button
-              onClick={handlePurchase}
-              disabled={isPurchasing}
-              className="w-full rounded-2xl px-5 py-3.5 text-center transition hover:brightness-105 disabled:opacity-50 active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #FFE8DC, #FFF0E0)", border: "1.5px solid #F5956A" }}
-            >
-              <p className="text-sm font-bold text-[#F57550]">{isPurchasing ? "移動中..." : "¥980 で今すぐ購入する"}</p>
-              <p className="mt-0.5 text-xs text-[#C0906A]">登録不要・すぐに閲覧できます</p>
-            </button>
-
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   // resultSummary の段落分割
   const summaryParagraphs = characterReport?.resultSummary.split("\n\n") ?? [];
@@ -1153,48 +979,6 @@ export default function ReportPage() {
                   </div>
                 );
               })}
-            </div>
-          </section>
-        )}
-
-        {/* ── Section 6: 無料相談 LINE CTA ─────────────────────────────────────── */}
-        {characterReport && (
-          <section className="card-rpg mt-6 overflow-hidden">
-            <div className="px-5 py-5 text-center" style={{ background: "#06C755", boxShadow: "0 4px 20px rgba(6,199,85,0.40)", fontFamily: "var(--font-noto-serif-jp), serif", color: "white" }}>
-              <p className="text-xs font-bold" style={{ color: "rgba(255,255,255,0.85)" }}>完全無料・今すぐ相談できます</p>
-              <h2 className="mt-1 text-base font-bold" style={{ color: "white" }}>
-                次なる自分を目指すための<br />無料個別相談
-              </h2>
-            </div>
-            <div className="p-5">
-              <p className="mb-4 text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", lineHeight: 1.9 }}>
-                {characterReport.ctaMessage}
-              </p>
-              <div className="mb-5 rounded-xl border border-[#E8DDD0] p-4 space-y-2">
-                {[
-                  "📌 あなたの診断結果を一緒に深掘りする",
-                  "🗺️ 進化するための優先順位を整理する",
-                  "📅 具体的な行動計画を一緒に立てる",
-                  "💬 日々の悩みや疑問にLINEで答える",
-                ].map((item) => (
-                  <p key={item} className="text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{item}</p>
-                ))}
-              </div>
-              <a
-                href="https://lin.ee/3nGM5xuo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-base font-bold text-white transition hover:-translate-y-0.5 hover:brightness-110"
-                style={{ background: "#06C755", boxShadow: "0 4px 20px rgba(6,199,85,0.40)", fontFamily: "var(--font-noto-serif-jp), serif" }}
-              >
-                <svg viewBox="0 0 24 24" className="h-6 w-6 fill-white shrink-0" aria-hidden="true">
-                  <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
-                </svg>
-                今すぐ無料で相談する
-              </a>
-              <p className="mt-3 text-center text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                LINEを追加して、メッセージを送るだけで相談できます
-              </p>
             </div>
           </section>
         )}

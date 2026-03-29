@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "analytics-mcp": {
+      "command": "C:\\Users\\terasaki_kaguya_micr\\anaconda3\\Scripts\\pipx.exe",
+      "args": ["run", "analytics-mcp"],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "C:\\Users\\terasaki_kaguya_micr\\AppData\\Roaming\\gcloud\\application_default_credentials.json",
+        "GOOGLE_PROJECT_ID": "exalted-point-384302"
+      }
+    }
+  }
+}

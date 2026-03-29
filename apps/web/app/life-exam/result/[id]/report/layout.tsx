@@ -11,6 +11,7 @@ const WORLD_LABEL: Record<string, string> = {
   空: "空の世界",
   海: "海の世界",
   地上: "地上の世界",
+  闇: "闇の世界",
   冥界: "闇の世界",
 };
 

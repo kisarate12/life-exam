@@ -11,6 +11,7 @@ const WORLD_LABEL: Record<string, string> = {
   空: "空の世界",
   海: "海の世界",
   地上: "地上の世界",
+  闇: "闇の世界",
   冥界: "闇の世界",
 };
 
@@ -65,7 +66,7 @@ export async function generateMetadata({
         scores.forEach((s) => { scoreBySubjectId[s.subject_id] = Number(s.score); });
         const characterResult = runDiagnosisFromScores(scoreBySubjectId);
         characterName = characterResult.name;
-        worldLabel = WORLD_LABEL[characterResult.world.replace("の世界の住人", "").replace("やみのせかいの住人", "冥界")] ?? "";
+        worldLabel = WORLD_LABEL[characterResult.world.replace("の世界の住人", "").replace("やみのせかい", "闇")] ?? "";
       }
     }
   } catch {

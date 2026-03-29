@@ -37,7 +37,7 @@ function getKinyu(income: Rank, asset: Rank): Rank {
 
 /**
  * キャラクター判定メイン
- * 戻り値: { character: キャラ名, world: '空'|'海'|'地上'|'冥界' }
+ * 戻り値: { character: キャラ名, world: '空'|'海'|'地上'|'闇' }
  */
 function determineCharacter(
   income: Rank,
@@ -45,11 +45,11 @@ function determineCharacter(
   health: Rank,
   relationships: Rank,
   time: Rank
-): { character: string; world: "空" | "海" | "地上" | "冥界" } | null {
+): { character: string; world: "空" | "海" | "地上" | "闇" } | null {
   const kinyu = getKinyu(income, asset);
 
   // ===================== 空の世界 =====================
-  // アマテラス（1st: 収入 S~A の最上位）
+  // イカロス（1st: 収入 S~A の最上位）
   if (
     inRange(income, "S~A") &&
     inRange(asset, "S~B") &&
@@ -57,17 +57,17 @@ function determineCharacter(
     inRange(relationships, "S~A") &&
     inRange(time, "S~A")
   ) {
-    return { character: "アマテラス", world: "空" };
+    return { character: "イカロス", world: "空" };
   }
-  // アマテラス（2nd: 4軸すべて良好 = kinyu S~B + time S~B + health S~C + rel S~B）
-  // ※ 人間関係 B 以上の人は孤独ではないためアマテラスへ
+  // イカロス（2nd: 4軸すべて良好 = kinyu S~B + time S~B + health S~C + rel S~B）
+  // ※ 人間関係 B 以上の人は孤独ではないためイカロスへ
   if (
     inRange(kinyu, "S~B") &&
     inRange(health, "S~C") &&
     inRange(relationships, "S~B") &&
     inRange(time, "S~B")
   ) {
-    return { character: "アマテラス", world: "空" };
+    return { character: "イカロス", world: "空" };
   }
   // 孤独な大王: 金融良 + 時間良 + 健康普通以上 + 人間関係 C 以下（平均以下）
   if (
@@ -163,14 +163,14 @@ function determineCharacter(
     return { character: "フンコロガシ", world: "地上" };
   }
 
-  // ===================== 冥界 =====================
+  // ===================== 闇の世界 =====================
   if (
     inRange(kinyu, "C") &&
     inRange(health, "S~C") &&
     inRange(relationships, "S~C") &&
     inRange(time, "C~F")
   ) {
-    return { character: "オークの族長", world: "冥界" };
+    return { character: "オークの族長", world: "闇" };
   }
   if (
     inRange(kinyu, "D~F") &&
@@ -178,7 +178,7 @@ function determineCharacter(
     inRange(relationships, "S~C") &&
     inRange(time, "C~F")
   ) {
-    return { character: "流れ者", world: "冥界" };
+    return { character: "流れ者", world: "闇" };
   }
   if (
     inRange(kinyu, "C~F") &&
@@ -186,7 +186,7 @@ function determineCharacter(
     ((inRange(health, "S~C") && inRange(relationships, "D~F")) ||
       (inRange(health, "D~F") && inRange(relationships, "S~C")))
   ) {
-    return { character: "ハイエナ", world: "冥界" };
+    return { character: "ハイエナ", world: "闇" };
   }
   if (
     inRange(kinyu, "C~F") &&
@@ -194,7 +194,7 @@ function determineCharacter(
     inRange(relationships, "D~F") &&
     inRange(time, "C~F")
   ) {
-    return { character: "蚊", world: "冥界" };
+    return { character: "蚊", world: "闇" };
   }
 
   return null;
@@ -202,7 +202,7 @@ function determineCharacter(
 
 /** 判定結果のキャラ名 → CharacterId（定義の name とドワーフ王→ドワーフの王 の対応含む） */
 const CHARACTER_NAME_TO_ID: Record<string, CharacterId> = {
-  アマテラス: "amaterasu",
+  イカロス: "icarus",
   孤独な大王: "king",
   スフィンクス: "egyptian_cat",
   カイコ: "kaiko",
@@ -277,7 +277,7 @@ export const SCORE_THRESHOLDS = {
   health: 60,
 } as const;
 
-/** アマテラス判定の上位閾値（全軸これ以上でアマテラス、未達はイカロス） */
+/** イカロス判定の上位閾値 */
 export const SCORE_THRESHOLDS_HIGH = {
   /** 金融: A閾値（収入A=68） */
   financial: 68,
@@ -291,7 +291,7 @@ export const SCORE_THRESHOLDS_HIGH = {
 
 /** 4文字コード → CharacterId（quick 診断と同じ体系） */
 const SCORE_CODE_TO_CHARACTER: Record<string, CharacterId> = {
-  MFCH: "amaterasu",  MFLH: "king",      MFCS: "egyptian_cat", MFLS: "kaiko",
+  MFCH: "icarus",     MFLH: "king",      MFCS: "egyptian_cat", MFLS: "kaiko",
   PFCH: "tsukuyomi",  PFLH: "noble",     PFCS: "namakemono",   PFLS: "snail",
   MBCH: "dwarf_king", MBLH: "knight",    MBCS: "tanuki",       MBLS: "beetle",
   PBCH: "goblin_king", PBLH: "wanderer", PBCS: "hyena",        PBLS: "mosquito",
@@ -316,14 +316,9 @@ export function diagnoseFromScores(scoreBySubjectId: Record<number, number>): Ch
 
   const code = `${m}${f}${c}${h}`;
 
-  // MFCH（全軸クリア）の場合、上位閾値をすべて超えていればアマテラス、未達ならイカロス
+  // MFCH（全軸クリア）→ イカロス
   if (code === "MFCH") {
-    const isAmaterasu =
-      financial    >= SCORE_THRESHOLDS_HIGH.financial    &&
-      time         >= SCORE_THRESHOLDS_HIGH.time         &&
-      relationship >= SCORE_THRESHOLDS_HIGH.relationship &&
-      health       >= SCORE_THRESHOLDS_HIGH.health;
-    return isAmaterasu ? "amaterasu" : "icarus";
+    return "icarus";
   }
 
   return SCORE_CODE_TO_CHARACTER[code] ?? "mosquito";

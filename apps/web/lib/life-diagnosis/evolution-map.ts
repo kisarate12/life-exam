@@ -73,7 +73,7 @@ export interface EvolutionPaths {
   upgrades: EvolutionPath[];
   /** 悪化しうる軸ごとの転落先（good → bad）。0〜4件 */
   downgrades: EvolutionPath[];
-  /** アマテラス（全軸 good）のとき true */
+  /** イカロス（全軸 good）のとき true */
   isSummit: boolean;
 }
 
@@ -88,23 +88,17 @@ export interface EvolutionPaths {
  * // downgrades: 人間関係→wanderer, 健康→hyena
  */
 export function getEvolutionPaths(currentId: CharacterId): EvolutionPaths {
-  // イカロス専用：全軸を上位閾値まで上げればアマテラス、1軸落ちれば隣接キャラへ
+  // イカロス（MFCH）= 頂点
   if (currentId === "icarus") {
     return {
-      upgrades: [
-        {
-          dimension: "全軸強化",
-          icon: "✨",
-          target: getCharacterResult("amaterasu"),
-        },
-      ],
+      upgrades: [],
       downgrades: [
         { dimension: "金融",     icon: "💰", target: getCharacterResult("tsukuyomi")    }, // M→P: PFCH
         { dimension: "時間",     icon: "⏰", target: getCharacterResult("dwarf_king")   }, // F→B: MBCH
         { dimension: "人間関係", icon: "🤝", target: getCharacterResult("king")         }, // C→L: MFLH
         { dimension: "健康",     icon: "💊", target: getCharacterResult("egyptian_cat") }, // H→S: MFCS
       ],
-      isSummit: false,
+      isSummit: true,
     };
   }
 

@@ -17,7 +17,7 @@ interface Persona {
 }
 
 const PERSONAS: Persona[] = [
-  // ─── MFCH: アマテラス ─────────────────────────────────────────
+  // ─── MFCH: イカロス ─────────────────────────────────────────
   { name: "山田 太郎", age: 45, occupation: "起業家・代表取締役",
     scores: { 1: 75, 2: 85, 3: 70, 4: 70, 5: 72 }, expectedCode: "MFCH",
     note: "事業成功・充実した人脈・健康管理も万全" },
@@ -293,7 +293,7 @@ const PERSONAS: Persona[] = [
 // ─── 定数 ──────────────────────────────────────────────────────────────────
 
 const CODE_TO_ID: Record<string, string> = {
-  MFCH: "amaterasu", MFLH: "king",      MFCS: "egyptian_cat", MFLS: "kaiko",
+  MFCH: "icarus",    MFLH: "king",      MFCS: "egyptian_cat", MFLS: "kaiko",
   PFCH: "tsukuyomi", PFLH: "noble",     PFCS: "namakemono",   PFLS: "snail",
   MBCH: "dwarf_king",MBLH: "knight",    MBCS: "tanuki",       MBLS: "beetle",
   PBCH: "goblin_king",PBLH: "wanderer", PBCS: "hyena",        PBLS: "mosquito",
