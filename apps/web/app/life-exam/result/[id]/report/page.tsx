@@ -39,6 +39,7 @@ const AXIS_DEFS = [
 const CHAPTERS = [
   { id: "chapter-character", label: "キャラクター" },
   { id: "chapter-capital", label: "5つの資本" },
+  { id: "chapter-ai", label: "AI分析" },
   { id: "chapter-traits", label: "あなたの特徴" },
   { id: "chapter-evolution", label: "進化の道筋" },
   { id: "chapter-compatibility", label: "相性診断" },
@@ -583,46 +584,6 @@ export default function ReportPage() {
           )}
         </section>
 
-        {/* ── AI個人分析 ───────────────────────────────────────────────────────── */}
-        <section className="card-rpg mt-6 p-4 sm:p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#6B66A3" }}>AI</span>
-            <h2 className="section-header text-lg">🔮 あなただけの人生分析</h2>
-          </div>
-          <p className="mb-4 text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-            あなたの回答データをもとにAIが生成した、パーソナライズされた分析レポートです
-          </p>
-
-          {isLoadingAnalysis ? (
-            <div className="flex flex-col items-center gap-3 py-8">
-              <div className="h-8 w-8 rounded-full border-4 border-[#F0EBE3] border-t-[#6B66A3]" style={{ animation: "spin 0.8s linear infinite" }} />
-              <p className="text-sm text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>AIが分析中です... （30秒ほどかかります）</p>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-          ) : aiAnalysis ? (
-            <div className="space-y-4 text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", lineHeight: 2.0 }}>
-              {aiAnalysis.split(/\n\n+/).map((block, i) => {
-                if (block.startsWith("## ")) {
-                  return (
-                    <h3
-                      key={i}
-                      className="mt-5 first:mt-0 font-bold text-[#333333]"
-                      style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 15, borderBottom: "1px solid #E8DDD0", paddingBottom: 6 }}
-                    >
-                      {block.replace(/^## /, "")}
-                    </h3>
-                  );
-                }
-                return <p key={i}>{block}</p>;
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-[#9A9290] text-center py-4" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-              分析の生成に失敗しました。ページを再読み込みしてください。
-            </p>
-          )}
-        </section>
-
         {/* ── Section 2: 5つの資本のデータ ──────────────────────────────────────── */}
         <section id="chapter-capital" className="card-rpg mt-6 p-4 sm:p-6" ref={(el) => { sectionRefs.current["chapter-capital"] = el; }}>
           <div className="mb-5 flex items-center gap-2">
@@ -773,11 +734,51 @@ export default function ReportPage() {
           </div>
         </section>
 
-        {/* ── Section 3: あなたの特徴（2カラムグリッド） ───────────────────────── */}
+        {/* ── Section 3: AI個人分析 ───────────────────────────────────────────── */}
+        <section id="chapter-ai" className="card-rpg mt-6 p-4 sm:p-6" ref={(el) => { sectionRefs.current["chapter-ai"] = el; }}>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#6B66A3" }}>3</span>
+            <h2 className="section-header text-lg">🔮 あなただけの人生分析</h2>
+          </div>
+          <p className="mb-4 text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+            あなたの回答データをもとにAIが生成した、パーソナライズされた分析レポートです
+          </p>
+
+          {isLoadingAnalysis ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div className="h-8 w-8 rounded-full border-4 border-[#F0EBE3] border-t-[#6B66A3]" style={{ animation: "spin 0.8s linear infinite" }} />
+              <p className="text-sm text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>AIが分析中です... （30秒ほどかかります）</p>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : aiAnalysis ? (
+            <div className="space-y-4 text-sm text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", lineHeight: 2.0 }}>
+              {aiAnalysis.split(/\n\n+/).map((block, i) => {
+                if (block.startsWith("## ")) {
+                  return (
+                    <h3
+                      key={i}
+                      className="mt-5 first:mt-0 font-bold text-[#333333]"
+                      style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 15, borderBottom: "1px solid #E8DDD0", paddingBottom: 6 }}
+                    >
+                      {block.replace(/^## /, "")}
+                    </h3>
+                  );
+                }
+                return <p key={i}>{block}</p>;
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-[#9A9290] text-center py-4" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+              分析の生成に失敗しました。ページを再読み込みしてください。
+            </p>
+          )}
+        </section>
+
+        {/* ── Section 4: あなたの特徴（2カラムグリッド） ───────────────────────── */}
         {characterReport && (
           <section id="chapter-traits" className="card-rpg mt-6 p-4 sm:p-6" ref={(el) => { sectionRefs.current["chapter-traits"] = el; }}>
             <div className="mb-5 flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#F57550" }}>3</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#F57550" }}>4</span>
               <h2 className="section-header text-lg">🌟 あなたの特徴</h2>
             </div>
 
@@ -825,10 +826,10 @@ export default function ReportPage() {
           </section>
         )}
 
-        {/* ── Section 4: 進化するための道筋 ────────────────────────────────────── */}
+        {/* ── Section 5: 進化するための道筋 ────────────────────────────────────── */}
         <section id="chapter-evolution" className="card-rpg mt-6 p-4 sm:p-6" ref={(el) => { sectionRefs.current["chapter-evolution"] = el; }}>
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#F57550" }}>4</span>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#F57550" }}>5</span>
             <h2 className="section-header text-lg">🗺️ 進化するための道筋</h2>
           </div>
           <p className="mb-5 text-xs text-[#9A9290]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
@@ -948,11 +949,11 @@ export default function ReportPage() {
           )}
         </section>
 
-        {/* ── Section 5: 相性診断 ──────────────────────────────────────────────── */}
+        {/* ── Section 6: 相性診断 ──────────────────────────────────────────────── */}
         {characterReport && (
           <section id="chapter-compatibility" className="card-rpg mt-6 p-4 sm:p-6" ref={(el) => { sectionRefs.current["chapter-compatibility"] = el; }}>
             <div className="mb-4 flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#F57550" }}>5</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "#F57550" }}>6</span>
               <h2 className="section-header text-lg">🤝 相性診断</h2>
             </div>
             <div className="space-y-3">
