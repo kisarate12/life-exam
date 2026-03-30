@@ -11,10 +11,11 @@ import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-e
 import { SUBJECT_ID_TO_CODE } from "@/lib/life-exam/examV2Questions";
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
-import { getWorldLabelDisplay, getWorldDisplay, getWorldShort, getWorldColor } from "@/lib/life-exam/worldDisplay";
+import { getWorldLabelDisplay, getWorldDisplay, getWorldShort } from "@/lib/life-exam/worldDisplay";
 import { getCharacterResult, diagnoseFromScores, getEvolutionPaths, SUMMIT_MESSAGE, CHARACTER_CODE } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
 import Nav from "../../../components/Nav";
+import { ShareCardModal } from "./ShareCardModal";
 
 /** ランキング1件のデータ構造（UI用。DBは life_exam_ranking_entries） */
 export interface RankingEntry {
@@ -117,7 +118,6 @@ export default function LifeExamResultPage() {
   const [characterImageError, setCharacterImageError] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [urlCopied, setUrlCopied] = useState(false);
 
 
   const [rankingStats, setRankingStats] = useState<{
@@ -372,86 +372,12 @@ export default function LifeExamResultPage() {
         </div>
       )}
 
-      {/* シェア用モーダル */}
-      {shareModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-start p-4 pt-14"
-          style={{ background: "rgba(0,0,0,0.9)" }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="シェア"
-        >
-          <button
-            type="button"
-            onClick={() => setShareModalOpen(false)}
-            className="absolute right-4 top-4 z-10 text-2xl leading-none hover:opacity-80"
-            style={{ color: "#FFD700" }}
-            aria-label="閉じる"
-          >
-            ✕
-          </button>
-          <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
-            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-6 shadow-lg" style={{ transform: "scale(0.95)", transformOrigin: "top center" }}>
-              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: `4px solid ${getWorldColor(characterResult.world)}` }}>
-                <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
-              </div>
-              <div className="flex justify-center" style={{ marginBottom: 12 }}>
-                <div className="flex max-h-[140px] max-w-[140px] items-center justify-center">
-                  {!characterImageError ? (
-                    <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[140px] max-w-[140px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
-                  ) : (
-                    <div className="flex h-28 w-28 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sm text-[#9A9290]">画像を配置</div>
-                  )}
-                </div>
-              </div>
-              <div className="text-center" style={{ marginBottom: 8 }}>
-                <span className="inline-block rounded-full px-3 py-1 text-sm font-bold tracking-[0.25em]" style={{ background: `${getWorldColor(characterResult.world)}18`, color: getWorldColor(characterResult.world), fontFamily: "monospace", fontSize: "1rem" }}>
-                  {CHARACTER_CODE[characterResult.id]}
-                </span>
-              </div>
-              <div className="text-center" style={{ marginBottom: 8 }}>
-                <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.4rem" }}>{characterResult.name}</h2>
-              </div>
-              <div className="text-center" style={{ marginBottom: 12 }}>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-[#555]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
-              </div>
-              <div className="border-t border-[#E8DDD0] pt-3 text-center">
-                <p className="text-[#D0C8C0]" style={{ fontSize: 11 }}>#人生診断</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 shrink-0 w-full max-w-sm text-center">
-            <p className="text-sm font-bold" style={{ color: "#FFD700" }}>スクショを撮って共有しよう</p>
-            <button
-              type="button"
-              onClick={async () => {
-                if (!resultUrl) return;
-                await navigator.clipboard.writeText(resultUrl);
-                setUrlCopied(true);
-                setTimeout(() => setUrlCopied(false), 2000);
-              }}
-              className="mt-2 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition hover:opacity-80"
-              style={{ background: urlCopied ? "#43756B" : "rgba(255,255,255,0.15)", color: urlCopied ? "#fff" : "#ccc" }}
-            >
-              {urlCopied ? "コピーしました!" : "診断結果のURLをコピー"}
-            </button>
-            <div className="mt-3 flex justify-center gap-5">
-              <a href="instagram://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
-                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
-                  <img src="/icons/instagram.svg" alt="" className="h-12 w-12 object-cover" />
-                </span>
-                <span className="text-[10px] text-[#ccc]">Instagram</span>
-              </a>
-              <a href="snssdk1233://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
-                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
-                  <img src="/icons/tiktok.svg" alt="" className="h-12 w-12 object-cover" />
-                </span>
-                <span className="text-[10px] text-[#ccc]">TikTok</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      <ShareCardModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        character={characterResult}
+        shareUrl={resultUrl}
+      />
 
       <Nav />
       <main className="mx-auto max-w-2xl px-4 py-8 pb-24 sm:py-10 sm:pb-10">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -14,9 +14,10 @@ import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
 import { getCharacterResult, getEvolutionPaths, CHARACTER_CODE, diagnoseFromScores } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
-import { getWorldLabelDisplay, getWorldColor } from "@/lib/life-exam/worldDisplay";
+
 import Nav from "../../../../components/Nav";
 import { StatusRadarChart } from "../StatusRadarChart";
+import { ShareCardModal } from "../ShareCardModal";
 
 const STAT_ORDER = ["資産", "収入", "時間", "人間関係", "健康"] as const;
 
@@ -29,44 +30,6 @@ const STAT_COMMENTS: Record<string, Record<JudgementRank, string>> = {
 };
 
 
-/** ランク→星の数（S=7〜F=1） */
-const RANK_STAR_COUNT: Record<JudgementRank, number> = {
-  S: 7, A: 6, B: 5, C: 4, D: 3, E: 2, F: 1,
-};
-
-const STAR_SIZE = 20;
-function StarIcon({ filled }: { filled: boolean }) {
-  const uid = useId().replace(/:/g, "");
-  const gradientId = `star-gold-${uid}`;
-  if (filled) {
-    return (
-      <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#FFA500" />
-          </linearGradient>
-        </defs>
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill={`url(#${gradientId})`} />
-      </svg>
-    );
-  }
-  return (
-    <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#E8DDD0" />
-    </svg>
-  );
-}
-
-function StatStars({ filledCount }: { filledCount: number }) {
-  return (
-    <span className="inline-flex items-center gap-0.5" aria-hidden>
-      {Array.from({ length: 7 }, (_, i) => (
-        <StarIcon key={i} filled={i < filledCount} />
-      ))}
-    </span>
-  );
-}
 
 // 4軸スライダー定義
 const AXIS_DEFS = [
@@ -1106,82 +1069,12 @@ export default function ReportPage() {
         </button>
       </div>
 
-      {/* ── シェアカードモーダル ── */}
-      {shareModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-start p-4 pt-14"
-          style={{ background: "rgba(0,0,0,0.9)" }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="シェア"
-        >
-          <button
-            type="button"
-            onClick={() => setShareModalOpen(false)}
-            className="absolute right-4 top-4 z-10 text-2xl leading-none hover:opacity-80"
-            style={{ color: "#FFD700" }}
-            aria-label="閉じる"
-          >
-            ✕
-          </button>
-          <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 120px)" }}>
-            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-6 shadow-lg" style={{ transform: "scale(0.95)", transformOrigin: "top center" }}>
-              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: `4px solid ${getWorldColor(characterResult.world)}` }}>
-                <span className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
-                  {getWorldLabelDisplay(characterResult.world)}
-                </span>
-              </div>
-              <div className="flex justify-center" style={{ marginBottom: 12 }}>
-                <img src={characterResult.imagePath} alt="" className="object-contain" style={{ maxWidth: 140, maxHeight: 140, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
-              </div>
-              <div className="text-center" style={{ marginBottom: 8 }}>
-                <span className="inline-block rounded-full px-3 py-1 font-bold tracking-[0.25em]" style={{ background: `${getWorldColor(characterResult.world)}18`, color: getWorldColor(characterResult.world), fontFamily: "monospace", fontSize: "1rem" }}>
-                  {CHARACTER_CODE[characterResult.id]}
-                </span>
-              </div>
-              <div className="text-center" style={{ marginBottom: 8 }}>
-                <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.35rem" }}>{characterResult.name}</h2>
-              </div>
-              <div className="text-center" style={{ marginBottom: 12 }}>
-                <p className="whitespace-pre-line leading-relaxed text-[#555]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400, fontSize: 12 }}>{characterResult.description}</p>
-              </div>
-              <div className="border-t border-[#E8DDD0] pt-3 text-center">
-                <p className="text-[#D0C8C0]" style={{ fontSize: 10 }}>#人生診断</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 shrink-0 w-full max-w-sm text-center">
-            <p className="text-sm font-bold" style={{ color: "#FFD700" }}>スクショを撮って共有しよう</p>
-            <button
-              type="button"
-              onClick={async () => {
-                if (!reportUrl) return;
-                await navigator.clipboard.writeText(reportUrl);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              className="mt-2 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition hover:opacity-80"
-              style={{ background: copied ? "#43756B" : "rgba(255,255,255,0.15)", color: copied ? "#fff" : "#ccc" }}
-            >
-              {copied ? "コピーしました!" : "診断結果のURLをコピー"}
-            </button>
-            <div className="mt-3 flex justify-center gap-5">
-              <a href="instagram://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
-                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
-                  <img src="/icons/instagram.svg" alt="" className="h-12 w-12 object-cover" />
-                </span>
-                <span className="text-[10px] text-[#ccc]">Instagram</span>
-              </a>
-              <a href="snssdk1233://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
-                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
-                  <img src="/icons/tiktok.svg" alt="" className="h-12 w-12 object-cover" />
-                </span>
-                <span className="text-[10px] text-[#ccc]">TikTok</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      <ShareCardModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        character={characterResult}
+        shareUrl={reportUrl}
+      />
     </div>
   );
 }
