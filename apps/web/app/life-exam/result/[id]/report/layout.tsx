@@ -17,14 +17,18 @@ const WORLD_LABEL: Record<string, string> = {
 
 /** OGP 画像が存在するキャラクター ID セット */
 const OGP_IMAGE_EXISTS = new Set<string>([
-  "amaterasu", "king", "kaiko", "tsukuyomi", "noble", "snail",
-  "dwarf_king", "knight", "tanuki", "beetle", "hyena", "mosquito",
-  "goblin_king",
+  "amaterasu", "icarus", "king", "egyptian_cat", "kaiko",
+  "tsukuyomi", "noble", "namakemono", "snail",
+  "dwarf_king", "knight", "tanuki", "beetle",
+  "goblin_king", "wanderer", "hyena", "mosquito",
 ]);
 
-const NAME_TO_ID = Object.fromEntries(
-  CHARACTER_IDS.map((id) => [CHARACTER_DEFINITIONS[id].name, id])
-);
+const NAME_TO_ID: Record<string, string> = {
+  ...Object.fromEntries(
+    CHARACTER_IDS.map((id) => [CHARACTER_DEFINITIONS[id].name, id])
+  ),
+  アマテラスオオミカミ: "amaterasu",
+};
 
 export async function generateMetadata({
   params,

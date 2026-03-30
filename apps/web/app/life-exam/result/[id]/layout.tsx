@@ -16,9 +16,12 @@ const WORLD_LABEL: Record<string, string> = {
 };
 
 /** キャラクター名 → characterId の逆引きマップ */
-const NAME_TO_ID = Object.fromEntries(
-  CHARACTER_IDS.map((id) => [CHARACTER_DEFINITIONS[id].name, id])
-);
+const NAME_TO_ID: Record<string, string> = {
+  ...Object.fromEntries(
+    CHARACTER_IDS.map((id) => [CHARACTER_DEFINITIONS[id].name, id])
+  ),
+  アマテラスオオミカミ: "amaterasu",
+};
 
 export async function generateMetadata({
   params,
