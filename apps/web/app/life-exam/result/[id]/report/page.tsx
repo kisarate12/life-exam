@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -13,6 +14,7 @@ import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
 import { getCharacterResult, getEvolutionPaths, CHARACTER_CODE, diagnoseFromScores } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
+import { getWorldLabelDisplay } from "@/lib/life-exam/worldDisplay";
 import Nav from "../../../../components/Nav";
 import { StatusRadarChart } from "../StatusRadarChart";
 
@@ -26,6 +28,45 @@ const STAT_COMMENTS: Record<string, Record<JudgementRank, string>> = {
   健康: { S: "健康は完璧。すべての活動の土台が整っています", A: "素晴らしい健康状態。この状態を維持し続けましょう", B: "健康は安定しています。小さな習慣を積み重ねましょう", C: "健康にやや不安があります", D: "健康が危うい状態です", E: "健康状態が深刻です", F: "健康が限界に近い状態です" },
 };
 
+
+/** ランク→星の数（S=7〜F=1） */
+const RANK_STAR_COUNT: Record<JudgementRank, number> = {
+  S: 7, A: 6, B: 5, C: 4, D: 3, E: 2, F: 1,
+};
+
+const STAR_SIZE = 20;
+function StarIcon({ filled }: { filled: boolean }) {
+  const uid = useId().replace(/:/g, "");
+  const gradientId = `star-gold-${uid}`;
+  if (filled) {
+    return (
+      <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFD700" />
+            <stop offset="100%" stopColor="#FFA500" />
+          </linearGradient>
+        </defs>
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill={`url(#${gradientId})`} />
+      </svg>
+    );
+  }
+  return (
+    <svg width={STAR_SIZE} height={STAR_SIZE} viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#E8DDD0" />
+    </svg>
+  );
+}
+
+function StatStars({ filledCount }: { filledCount: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-hidden>
+      {Array.from({ length: 7 }, (_, i) => (
+        <StarIcon key={i} filled={i < filledCount} />
+      ))}
+    </span>
+  );
+}
 
 // 4軸スライダー定義
 const AXIS_DEFS = [
@@ -252,6 +293,8 @@ export default function ReportPage() {
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -513,56 +556,21 @@ export default function ReportPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  /** OGP画像をInstagram Stories サイズ (1080x1920) に変換してダウンロード */
-  async function handleDownloadStory() {
-    const ogpPath = `/ogp/${characterResult.id}.png`;
-    const STORY_W = 1080;
-    const STORY_H = 1920;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = STORY_W;
-    canvas.height = STORY_H;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // 背景グラデーション（RPGテーマに合わせた落ち着いた色味）
-    const grad = ctx.createLinearGradient(0, 0, 0, STORY_H);
-    grad.addColorStop(0, "#2C2420");
-    grad.addColorStop(0.5, "#1A1512");
-    grad.addColorStop(1, "#2C2420");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, STORY_W, STORY_H);
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = ogpPath;
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject();
-    });
-
-    // OGP画像をキャンバス幅に合わせてリサイズし、中央に配置
-    const scale = STORY_W / img.naturalWidth;
-    const drawW = STORY_W;
-    const drawH = img.naturalHeight * scale;
-    const drawY = (STORY_H - drawH) / 2;
-    ctx.drawImage(img, 0, drawY, drawW, drawH);
-
-    // 上下の装飾テキスト
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "bold 28px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("人生診断", STORY_W / 2, drawY - 40);
-
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    ctx.font = "22px sans-serif";
-    ctx.fillText("life-exam.vercel.app", STORY_W / 2, drawY + drawH + 50);
-
-    // ダウンロード
-    const link = document.createElement("a");
-    link.download = `life-exam-${characterResult.id}-story.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+  /** シェアカードを html-to-image でPNG化してダウンロード */
+  async function handleDownloadCard() {
+    if (!shareCardRef.current || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, cacheBust: true });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `人生診断_${characterResult.name}.png`;
+      a.click();
+    } catch {
+      alert("画像の生成に失敗しました。スクリーンショットをお試しください。");
+    } finally {
+      setIsDownloading(false);
+    }
   }
 
   return (
@@ -1076,11 +1084,12 @@ export default function ReportPage() {
           </svg>
         </a>
 
-        {/* Instagram ストーリー画像DL */}
+        {/* 画像DL（Instagram等向け） */}
         <button
-          onClick={handleDownloadStory}
-          aria-label="ストーリー用画像をダウンロード"
-          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition hover:opacity-75 active:scale-95"
+          onClick={handleDownloadCard}
+          disabled={isDownloading}
+          aria-label="シェア画像をダウンロード"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition hover:opacity-75 active:scale-95 disabled:opacity-50"
           style={{ background: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1108,6 +1117,45 @@ export default function ReportPage() {
             </svg>
           )}
         </button>
+      </div>
+
+      {/* ── 画像DL用の隠しシェアカード（結果ページと同じ縦型カード） ── */}
+      <div className="fixed left-[-9999px] top-0" aria-hidden>
+        <div ref={shareCardRef} className="font-diagnosis-card w-[360px] overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
+          <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #F57550" }}>
+            <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+              {getWorldLabelDisplay(characterResult.world)}
+            </span>
+          </div>
+          <div className="flex justify-center" style={{ marginBottom: 16 }}>
+            <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[240px] max-w-[240px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
+          </div>
+          <div className="text-center" style={{ marginBottom: 16 }}>
+            <span className="inline-block mb-1 rounded-full px-2 py-0.5 text-xs font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace" }}>
+              {CHARACTER_CODE[characterResult.id]}
+            </span>
+            <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>{characterResult.name}</h2>
+          </div>
+          <div className="text-center" style={{ marginBottom: 16 }}>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
+          </div>
+          <div className="border-t border-[#E8DDD0] pt-4">
+            {(["収入", "資産", "健康", "人間関係", "時間"] as const).map((label) => {
+              const row = comparisonRowsDetailed.find((r) => r.subjectName === label);
+              const rank = (row?.rank ?? "C") as JudgementRank;
+              return (
+                <div key={label} className="flex items-center justify-between py-2 text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+                  <span className="text-[#333333]">{label}</span>
+                  <StatStars filledCount={RANK_STAR_COUNT[rank]} />
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 border-t border-[#E8DDD0] pt-3 text-center">
+            <p className="text-[#D0C8C0]" style={{ fontSize: 11 }}>{reportUrl}</p>
+            <p className="mt-1 text-[#D0C8C0]" style={{ fontSize: 11 }}>#人生診断</p>
+          </div>
+        </div>
       </div>
     </div>
   );
