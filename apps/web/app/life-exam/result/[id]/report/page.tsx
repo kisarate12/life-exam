@@ -1125,7 +1125,7 @@ export default function ReportPage() {
             ✕
           </button>
           <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 120px)" }}>
-            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-6 shadow-lg">
+            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-6 shadow-lg" style={{ transform: "scale(0.95)", transformOrigin: "top center" }}>
               <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: `4px solid ${getWorldColor(characterResult.world)}` }}>
                 <span className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
                   {getWorldLabelDisplay(characterResult.world)}
@@ -1150,21 +1150,33 @@ export default function ReportPage() {
               </div>
             </div>
           </div>
-          <div className="mt-5 shrink-0 w-full max-w-sm text-center">
-            <p className="text-sm font-bold text-white">スクショを撮って共有しよう</p>
-            <p className="mt-1 text-xs text-[#9A9290]">スクリーンショットを保存してから共有してね</p>
+          <div className="mt-4 shrink-0 w-full max-w-sm text-center">
+            <p className="text-sm font-bold" style={{ color: "#FFD700" }}>スクショを撮って共有しよう</p>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!reportUrl) return;
+                await navigator.clipboard.writeText(reportUrl);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition hover:opacity-80"
+              style={{ background: copied ? "#43756B" : "rgba(255,255,255,0.15)", color: copied ? "#fff" : "#ccc" }}
+            >
+              {copied ? "コピーしました!" : "診断結果のURLをコピー"}
+            </button>
             <div className="mt-3 flex justify-center gap-5">
               <a href="instagram://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
                 <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
                   <img src="/icons/instagram.svg" alt="" className="h-12 w-12 object-cover" />
                 </span>
-                <span className="text-[10px] text-[#9A9290]">Instagram</span>
+                <span className="text-[10px] text-[#ccc]">Instagram</span>
               </a>
               <a href="snssdk1233://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
                 <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
                   <img src="/icons/tiktok.svg" alt="" className="h-12 w-12 object-cover" />
                 </span>
-                <span className="text-[10px] text-[#9A9290]">TikTok</span>
+                <span className="text-[10px] text-[#ccc]">TikTok</span>
               </a>
             </div>
           </div>
