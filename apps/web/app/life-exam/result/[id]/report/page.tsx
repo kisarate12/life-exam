@@ -513,6 +513,58 @@ export default function ReportPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  /** OGP画像をInstagram Stories サイズ (1080x1920) に変換してダウンロード */
+  async function handleDownloadStory() {
+    const ogpPath = `/ogp/${characterResult.id}.png`;
+    const STORY_W = 1080;
+    const STORY_H = 1920;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = STORY_W;
+    canvas.height = STORY_H;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // 背景グラデーション（RPGテーマに合わせた落ち着いた色味）
+    const grad = ctx.createLinearGradient(0, 0, 0, STORY_H);
+    grad.addColorStop(0, "#2C2420");
+    grad.addColorStop(0.5, "#1A1512");
+    grad.addColorStop(1, "#2C2420");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, STORY_W, STORY_H);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = ogpPath;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject();
+    });
+
+    // OGP画像をキャンバス幅に合わせてリサイズし、中央に配置
+    const scale = STORY_W / img.naturalWidth;
+    const drawW = STORY_W;
+    const drawH = img.naturalHeight * scale;
+    const drawY = (STORY_H - drawH) / 2;
+    ctx.drawImage(img, 0, drawY, drawW, drawH);
+
+    // 上下の装飾テキスト
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.font = "bold 28px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("人生診断", STORY_W / 2, drawY - 40);
+
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.font = "22px sans-serif";
+    ctx.fillText("life-exam.vercel.app", STORY_W / 2, drawY + drawH + 50);
+
+    // ダウンロード
+    const link = document.createElement("a");
+    link.download = `life-exam-${characterResult.id}-story.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
   return (
     <div className="min-h-screen relative z-10">
       <Nav />
@@ -1023,6 +1075,20 @@ export default function ReportPage() {
             <path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.16 1.84 5.94 4.6 7.66-.18.66-.68 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.4-1.62 3.38-2.28.77.11 1.57.17 2.43.17 5.52 0 10-3.92 10-8.64C22 5.92 17.52 2 12 2z"/>
           </svg>
         </a>
+
+        {/* Instagram ストーリー画像DL */}
+        <button
+          onClick={handleDownloadStory}
+          aria-label="ストーリー用画像をダウンロード"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition hover:opacity-75 active:scale-95"
+          style={{ background: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </button>
 
         {/* リンクコピー */}
         <button
