@@ -14,7 +14,7 @@ import type { JudgementRank } from "@/lib/life-exam/judgement";
 import { RANK_FILL_PERCENT, RANK_COLOR } from "@/lib/life-exam/rankConstants";
 import { getCharacterResult, getEvolutionPaths, CHARACTER_CODE, diagnoseFromScores } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
-import { getWorldLabelDisplay } from "@/lib/life-exam/worldDisplay";
+import { getWorldLabelDisplay, getWorldColor } from "@/lib/life-exam/worldDisplay";
 import Nav from "../../../../components/Nav";
 import { StatusRadarChart } from "../StatusRadarChart";
 
@@ -1124,8 +1124,8 @@ export default function ReportPage() {
             ✕
           </button>
           <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 120px)" }}>
-            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
-              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: "4px solid #F57550" }}>
+            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-6 shadow-lg">
+              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: `4px solid ${getWorldColor(characterResult.world)}` }}>
                 <span className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
                   {getWorldLabelDisplay(characterResult.world)}
                 </span>
@@ -1133,30 +1133,19 @@ export default function ReportPage() {
               <div className="flex justify-center" style={{ marginBottom: 12 }}>
                 <img src={characterResult.imagePath} alt="" className="object-contain" style={{ maxWidth: 140, maxHeight: 140, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
               </div>
-              <div className="text-center" style={{ marginBottom: 12 }}>
-                <span className="inline-block mb-1 rounded-full px-2 py-0.5 font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace", fontSize: 11 }}>
+              <div className="text-center" style={{ marginBottom: 8 }}>
+                <span className="inline-block rounded-full px-3 py-1 font-bold tracking-[0.25em]" style={{ background: `${getWorldColor(characterResult.world)}18`, color: getWorldColor(characterResult.world), fontFamily: "monospace", fontSize: "1rem" }}>
                   {CHARACTER_CODE[characterResult.id]}
                 </span>
+              </div>
+              <div className="text-center" style={{ marginBottom: 8 }}>
                 <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.35rem" }}>{characterResult.name}</h2>
               </div>
               <div className="text-center" style={{ marginBottom: 12 }}>
-                <p className="whitespace-pre-line leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400, fontSize: 12 }}>{characterResult.description}</p>
+                <p className="whitespace-pre-line leading-relaxed text-[#555]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400, fontSize: 12 }}>{characterResult.description}</p>
               </div>
-              <div className="border-t border-[#E8DDD0] pt-3">
-                {(["収入", "資産", "健康", "人間関係", "時間"] as const).map((label) => {
-                  const row = comparisonRowsDetailed.find((r) => r.subjectName === label);
-                  const rank = (row?.rank ?? "C") as JudgementRank;
-                  return (
-                    <div key={label} className="flex items-center justify-between py-1.5" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
-                      <span className="text-[#333333]">{label}</span>
-                      <StatStars filledCount={RANK_STAR_COUNT[rank]} />
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-3 border-t border-[#E8DDD0] pt-2 text-center">
-                <p className="text-[#D0C8C0]" style={{ fontSize: 10 }}>life-exam.vercel.app</p>
-                <p className="mt-0.5 text-[#D0C8C0]" style={{ fontSize: 10 }}>#人生診断</p>
+              <div className="border-t border-[#E8DDD0] pt-3 text-center">
+                <p className="text-[#D0C8C0]" style={{ fontSize: 10 }}>#人生診断</p>
               </div>
             </div>
           </div>

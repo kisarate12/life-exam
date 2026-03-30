@@ -11,7 +11,7 @@ import { provisionalDeviationValue, deviationFromPopulation } from "@/lib/life-e
 import { SUBJECT_ID_TO_CODE } from "@/lib/life-exam/examV2Questions";
 import { SUBJECT_DISPLAY_SHORT } from "@/lib/life-exam/ver1-concepts";
 import type { JudgementRank } from "@/lib/life-exam/judgement";
-import { getWorldLabelDisplay, getWorldDisplay, getWorldShort } from "@/lib/life-exam/worldDisplay";
+import { getWorldLabelDisplay, getWorldDisplay, getWorldShort, getWorldColor } from "@/lib/life-exam/worldDisplay";
 import { getCharacterResult, diagnoseFromScores, getEvolutionPaths, SUMMIT_MESSAGE, CHARACTER_CODE } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
 import Nav from "../../../components/Nav";
@@ -389,39 +389,32 @@ export default function LifeExamResultPage() {
             ✕
           </button>
           <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
-            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
-              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #F57550" }}>
+            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-6 shadow-lg">
+              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: `4px solid ${getWorldColor(characterResult.world)}` }}>
                 <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
               </div>
-              <div className="flex justify-center" style={{ marginBottom: 16 }}>
-                <div className="flex max-h-[160px] max-w-[160px] items-center justify-center">
+              <div className="flex justify-center" style={{ marginBottom: 12 }}>
+                <div className="flex max-h-[140px] max-w-[140px] items-center justify-center">
                   {!characterImageError ? (
-                    <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[160px] max-w-[160px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
+                    <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[140px] max-w-[140px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
                   ) : (
-                    <div className="flex h-32 w-32 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sm text-[#9A9290]">画像を配置</div>
+                    <div className="flex h-28 w-28 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sm text-[#9A9290]">画像を配置</div>
                   )}
                 </div>
               </div>
-              <div className="text-center" style={{ marginBottom: 16 }}>
-                <span className="inline-block mb-1 rounded-full px-2 py-0.5 text-xs font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace" }}>
+              <div className="text-center" style={{ marginBottom: 8 }}>
+                <span className="inline-block rounded-full px-3 py-1 text-sm font-bold tracking-[0.25em]" style={{ background: `${getWorldColor(characterResult.world)}18`, color: getWorldColor(characterResult.world), fontFamily: "monospace", fontSize: "1rem" }}>
                   {CHARACTER_CODE[characterResult.id]}
                 </span>
-                <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>{characterResult.name}</h2>
               </div>
-              <div className="text-center" style={{ marginBottom: 16 }}>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
+              <div className="text-center" style={{ marginBottom: 8 }}>
+                <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.4rem" }}>{characterResult.name}</h2>
               </div>
-              <div className="border-t border-[#E8DDD0] pt-4">
-                {statRows.map(({ label, rank }) => (
-                  <div key={label} className="flex items-center justify-between py-2 text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                    <span className="text-[#333333]">{label}</span>
-                    <StatStars filledCount={RANK_STAR_COUNT[rank as JudgementRank]} />
-                  </div>
-                ))}
+              <div className="text-center" style={{ marginBottom: 12 }}>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-[#555]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
               </div>
-              <div className="mt-4 border-t border-[#E8DDD0] pt-3 text-center">
-                <p className="text-[#D0C8C0]" style={{ fontSize: 11 }}>{resultUrl}</p>
-                <p className="mt-1 text-[#D0C8C0]" style={{ fontSize: 11 }}>#人生診断</p>
+              <div className="border-t border-[#E8DDD0] pt-3 text-center">
+                <p className="text-[#D0C8C0]" style={{ fontSize: 11 }}>#人生診断</p>
               </div>
             </div>
           </div>

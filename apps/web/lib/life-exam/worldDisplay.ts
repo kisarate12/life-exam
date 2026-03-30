@@ -24,6 +24,18 @@ export const WORLD_DISPLAY: Record<string, { name: string; icon: string }> = {
   "やみのせかいの住人": { name: "闇の世界", icon: "💀" },
 };
 
+/** 世界キー → テーマカラー（シェアカード等で使用） */
+export const WORLD_COLOR: Record<string, string> = {
+  "空の世界の住人": "#F5A623",   // 金・太陽
+  "海の世界の住人": "#3A8FBF",   // 深い海青
+  "地上の世界の住人": "#5A9E6F", // 森緑
+  "やみのせかいの住人": "#8B5CF6", // 闇紫
+};
+
+export function getWorldColor(worldKey: string): string {
+  return WORLD_COLOR[worldKey] ?? "#706860";
+}
+
 export function getWorldLabelDisplay(worldKey: string): string {
   return WORLD_LABEL_DISPLAY[worldKey] ?? worldKey;
 }
