@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -293,8 +293,7 @@ export default function ReportPage() {
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -556,22 +555,6 @@ export default function ReportPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  /** シェアカードを html-to-image でPNG化してダウンロード */
-  async function handleDownloadCard() {
-    if (!shareCardRef.current || isDownloading) return;
-    setIsDownloading(true);
-    try {
-      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, cacheBust: true });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `人生診断_${characterResult.name}.png`;
-      a.click();
-    } catch {
-      alert("画像の生成に失敗しました。スクリーンショットをお試しください。");
-    } finally {
-      setIsDownloading(false);
-    }
-  }
 
   return (
     <div className="min-h-screen relative z-10">
@@ -1084,19 +1067,22 @@ export default function ReportPage() {
           </svg>
         </a>
 
-        {/* 画像DL（Instagram等向け） */}
+        {/* Instagram */}
         <button
-          onClick={handleDownloadCard}
-          disabled={isDownloading}
-          aria-label="シェア画像をダウンロード"
-          className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-md transition hover:opacity-75 active:scale-95 disabled:opacity-50"
-          style={{ background: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" }}
+          onClick={() => setShareModalOpen(true)}
+          aria-label="Instagramでシェア"
+          className="flex h-10 w-10 items-center justify-center rounded-full shadow-md transition hover:opacity-75 active:scale-95 overflow-hidden"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
+          <img src="/icons/instagram.svg" alt="" className="h-10 w-10" />
+        </button>
+
+        {/* TikTok */}
+        <button
+          onClick={() => setShareModalOpen(true)}
+          aria-label="TikTokでシェア"
+          className="flex h-10 w-10 items-center justify-center rounded-full shadow-md transition hover:opacity-75 active:scale-95 overflow-hidden"
+        >
+          <img src="/icons/tiktok.svg" alt="" className="h-10 w-10" />
         </button>
 
         {/* リンクコピー */}
@@ -1119,58 +1105,64 @@ export default function ReportPage() {
         </button>
       </div>
 
-      {/* ── 画像DL用の隠しシェアカード（IGストーリーズ 540×960 → ×2 = 1080×1920） ── */}
-      {/* 上部250px・下部200pxはIG UIが被るため、カード本体は中央の安全領域に配置 */}
-      <div className="fixed left-[-9999px] top-0" aria-hidden>
+      {/* ── シェアカードモーダル ── */}
+      {shareModalOpen && (
         <div
-          ref={shareCardRef}
-          className="flex flex-col items-center justify-center"
-          style={{ width: 540, height: 960, background: "linear-gradient(180deg, #2C2420 0%, #1A1512 50%, #2C2420 100%)" }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-start p-4 pt-14"
+          style={{ background: "rgba(0,0,0,0.9)" }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="シェア"
         >
-          {/* 上部マージン（IGユーザー名領域を避ける） */}
-          <div style={{ height: 125, flexShrink: 0 }} />
-
-          {/* カード本体 */}
-          <div className="font-diagnosis-card overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white shadow-lg" style={{ width: 460, padding: "28px 24px" }}>
-            <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: "4px solid #F57550" }}>
-              <span className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
-                {getWorldLabelDisplay(characterResult.world)}
-              </span>
-            </div>
-            <div className="flex justify-center" style={{ marginBottom: 12 }}>
-              <img src={characterResult.imagePath} alt="" className="object-contain" style={{ width: 180, height: 180, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
-            </div>
-            <div className="text-center" style={{ marginBottom: 12 }}>
-              <span className="inline-block mb-1 rounded-full px-2 py-0.5 font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace", fontSize: 11 }}>
-                {CHARACTER_CODE[characterResult.id]}
-              </span>
-              <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.35rem" }}>{characterResult.name}</h2>
-            </div>
-            <div className="text-center" style={{ marginBottom: 12 }}>
-              <p className="whitespace-pre-line leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400, fontSize: 12 }}>{characterResult.description}</p>
-            </div>
-            <div className="border-t border-[#E8DDD0] pt-3">
-              {(["収入", "資産", "健康", "人間関係", "時間"] as const).map((label) => {
-                const row = comparisonRowsDetailed.find((r) => r.subjectName === label);
-                const rank = (row?.rank ?? "C") as JudgementRank;
-                return (
-                  <div key={label} className="flex items-center justify-between py-1.5" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
-                    <span className="text-[#333333]">{label}</span>
-                    <StatStars filledCount={RANK_STAR_COUNT[rank]} />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-3 border-t border-[#E8DDD0] pt-2 text-center">
-              <p className="text-[#D0C8C0]" style={{ fontSize: 10 }}>life-exam.vercel.app</p>
-              <p className="mt-0.5 text-[#D0C8C0]" style={{ fontSize: 10 }}>#人生診断</p>
+          <button
+            type="button"
+            onClick={() => setShareModalOpen(false)}
+            className="absolute right-4 top-4 z-10 text-2xl leading-none hover:opacity-80"
+            style={{ color: "#FFD700" }}
+            aria-label="閉じる"
+          >
+            ✕
+          </button>
+          <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 120px)" }}>
+            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
+              <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: "4px solid #F57550" }}>
+                <span className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
+                  {getWorldLabelDisplay(characterResult.world)}
+                </span>
+              </div>
+              <div className="flex justify-center" style={{ marginBottom: 12 }}>
+                <img src={characterResult.imagePath} alt="" className="object-contain" style={{ maxWidth: 200, maxHeight: 200, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
+              </div>
+              <div className="text-center" style={{ marginBottom: 12 }}>
+                <span className="inline-block mb-1 rounded-full px-2 py-0.5 font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace", fontSize: 11 }}>
+                  {CHARACTER_CODE[characterResult.id]}
+                </span>
+                <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.35rem" }}>{characterResult.name}</h2>
+              </div>
+              <div className="text-center" style={{ marginBottom: 12 }}>
+                <p className="whitespace-pre-line leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400, fontSize: 12 }}>{characterResult.description}</p>
+              </div>
+              <div className="border-t border-[#E8DDD0] pt-3">
+                {(["収入", "資産", "健康", "人間関係", "時間"] as const).map((label) => {
+                  const row = comparisonRowsDetailed.find((r) => r.subjectName === label);
+                  const rank = (row?.rank ?? "C") as JudgementRank;
+                  return (
+                    <div key={label} className="flex items-center justify-between py-1.5" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
+                      <span className="text-[#333333]">{label}</span>
+                      <StatStars filledCount={RANK_STAR_COUNT[rank]} />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 border-t border-[#E8DDD0] pt-2 text-center">
+                <p className="text-[#D0C8C0]" style={{ fontSize: 10 }}>life-exam.vercel.app</p>
+                <p className="mt-0.5 text-[#D0C8C0]" style={{ fontSize: 10 }}>#人生診断</p>
+              </div>
             </div>
           </div>
-
-          {/* 下部マージン（IG返信バー領域を避ける） */}
-          <div style={{ flexGrow: 1, flexShrink: 0 }} />
+          <p className="mt-4 text-center text-xs text-[#FFD700]">スクリーンショットして共有してね</p>
         </div>
-      </div>
+      )}
     </div>
   );
 }

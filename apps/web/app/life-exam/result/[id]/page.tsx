@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -117,8 +117,8 @@ export default function LifeExamResultPage() {
   const [characterImageError, setCharacterImageError] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const shareCardRef = useRef<HTMLDivElement>(null);
+
+
   const [rankingStats, setRankingStats] = useState<{
     globalRank: number;
     globalTotal: number;
@@ -343,21 +343,6 @@ export default function LifeExamResultPage() {
   const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareXText)}`;
   const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(challengeUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！あなたは何タイプ？ #人生診断`)}`;
 
-  const handleDownloadCard = async () => {
-    if (!shareCardRef.current || isDownloading) return;
-    setIsDownloading(true);
-    try {
-      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, cacheBust: true });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `人生診断_${characterResult.name}.png`;
-      a.click();
-    } catch {
-      alert("画像の生成に失敗しました。スクリーンショットをお試しください。");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const statRows = [
     { label: "収入", rank: subjectRanks["収入"] ?? "C" },
@@ -404,7 +389,7 @@ export default function LifeExamResultPage() {
             ✕
           </button>
           <div className="w-full max-w-sm flex-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
-            <div ref={shareCardRef} className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
+            <div className="font-diagnosis-card w-full overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
               <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #F57550" }}>
                 <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
               </div>
@@ -440,15 +425,7 @@ export default function LifeExamResultPage() {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleDownloadCard}
-            disabled={isDownloading}
-            className="mt-4 shrink-0 w-full max-w-sm rounded-xl py-3 text-sm font-bold transition hover:opacity-80 disabled:opacity-50"
-            style={{ background: "#FFD700", color: "#333333" }}
-          >
-            {isDownloading ? "生成中..." : "📥 画像を保存する"}
-          </button>
+          <p className="mt-4 text-center text-xs text-[#FFD700]">スクリーンショットして共有してね</p>
         </div>
       )}
 
@@ -765,14 +742,7 @@ export default function LifeExamResultPage() {
 
         {/* シェア */}
         <section className="card-rpg mt-6 p-6 sm:p-8">
-          <button
-            type="button"
-            onClick={() => setShareModalOpen(true)}
-            className="btn-rpg-sub w-full py-3 text-sm"
-          >
-            シェア用にカードを表示する
-          </button>
-          <p className="mt-4 text-center text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
+          <p className="text-center text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
             友達に挑戦状を送る
           </p>
           <p className="text-center text-xs text-[#9A9290]">あなたは何タイプ？と問いかけよう</p>
@@ -783,10 +753,10 @@ export default function LifeExamResultPage() {
             <a href={shareLineUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="LINEでシェア">
               <img src="/icons/line.svg" alt="" className="h-9 w-9 shrink-0" />
             </a>
-            <button type="button" onClick={handleDownloadCard} className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="Instagramでシェア">
+            <button type="button" onClick={() => setShareModalOpen(true)} className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="Instagramでシェア">
               <img src="/icons/instagram.svg" alt="" className="h-9 w-9 shrink-0" />
             </button>
-            <button type="button" onClick={handleDownloadCard} className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="TikTokでシェア">
+            <button type="button" onClick={() => setShareModalOpen(true)} className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="TikTokでシェア">
               <img src="/icons/tiktok.svg" alt="" className="h-9 w-9 shrink-0" />
             </button>
           </div>
