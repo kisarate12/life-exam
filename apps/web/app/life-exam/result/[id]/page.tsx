@@ -341,7 +341,8 @@ export default function LifeExamResultPage() {
     .join(" / ");
   const shareXText = `人生診断やったら「${characterResult.name}」判定された...\n${subjectRankLine}\nあなたは何タイプ？→ ${challengeUrl}\n#人生診断`;
   const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareXText)}`;
-  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(challengeUrl)}&text=${encodeURIComponent(`私は「${characterResult.name}」でした！あなたは何タイプ？ #人生診断`)}`;
+  const shareLineText = `私は「${characterResult.name}」でした！あなたは何タイプ？ #人生診断\n${challengeUrl}`;
+  const shareLineUrl = `https://line.me/R/share?text=${encodeURIComponent(shareLineText)}`;
 
 
   const statRows = [

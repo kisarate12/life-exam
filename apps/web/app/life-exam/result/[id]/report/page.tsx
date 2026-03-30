@@ -546,7 +546,8 @@ export default function ReportPage() {
     : "";
   const shareXText = `「${characterResult.name}」の人生診断レポートを公開しました。あなたは何タイプ？👇\n#人生診断`;
   const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareXText)}&url=${encodeURIComponent(reportUrl)}`;
-  const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(reportUrl)}&text=${encodeURIComponent(`「${characterResult.name}」の人生診断レポートです #人生診断`)}`;
+  const shareLineText = `「${characterResult.name}」の人生診断レポートです #人生診断\n${reportUrl}`;
+  const shareLineUrl = `https://line.me/R/share?text=${encodeURIComponent(shareLineText)}`;
 
   async function handleCopyLink() {
     if (!reportUrl) return;
