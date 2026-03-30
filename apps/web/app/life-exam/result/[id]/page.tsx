@@ -394,11 +394,11 @@ export default function LifeExamResultPage() {
                 <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>{worldLabelDisplay}</span>
               </div>
               <div className="flex justify-center" style={{ marginBottom: 16 }}>
-                <div className="flex max-h-[240px] max-w-[240px] items-center justify-center">
+                <div className="flex max-h-[160px] max-w-[160px] items-center justify-center">
                   {!characterImageError ? (
-                    <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[240px] max-w-[240px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
+                    <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[160px] max-w-[160px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
                   ) : (
-                    <div className="flex h-40 w-40 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sm text-[#9A9290]">画像を配置</div>
+                    <div className="flex h-32 w-32 items-center justify-center rounded-xl border border-[#E8DDD0] bg-white text-sm text-[#9A9290]">画像を配置</div>
                   )}
                 </div>
               </div>
@@ -429,12 +429,16 @@ export default function LifeExamResultPage() {
             <p className="text-sm font-bold text-white">スクショを撮って共有しよう</p>
             <p className="mt-1 text-xs text-[#9A9290]">スクリーンショットを保存してから共有してね</p>
             <div className="mt-3 flex justify-center gap-5">
-              <a href="instagram://app" className="flex flex-col items-center gap-1 transition hover:opacity-70">
-                <img src="/icons/instagram.svg" alt="" className="h-11 w-11" />
+              <a href="instagram://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
+                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
+                  <img src="/icons/instagram.svg" alt="" className="h-12 w-12 object-cover" />
+                </span>
                 <span className="text-[10px] text-[#9A9290]">Instagram</span>
               </a>
-              <a href="snssdk1233://app" className="flex flex-col items-center gap-1 transition hover:opacity-70">
-                <img src="/icons/tiktok.svg" alt="" className="h-11 w-11" />
+              <a href="snssdk1233://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
+                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
+                  <img src="/icons/tiktok.svg" alt="" className="h-12 w-12 object-cover" />
+                </span>
                 <span className="text-[10px] text-[#9A9290]">TikTok</span>
               </a>
             </div>

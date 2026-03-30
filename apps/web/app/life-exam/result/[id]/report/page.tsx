@@ -1131,7 +1131,7 @@ export default function ReportPage() {
                 </span>
               </div>
               <div className="flex justify-center" style={{ marginBottom: 12 }}>
-                <img src={characterResult.imagePath} alt="" className="object-contain" style={{ maxWidth: 200, maxHeight: 200, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
+                <img src={characterResult.imagePath} alt="" className="object-contain" style={{ maxWidth: 140, maxHeight: 140, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
               </div>
               <div className="text-center" style={{ marginBottom: 12 }}>
                 <span className="inline-block mb-1 rounded-full px-2 py-0.5 font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace", fontSize: 11 }}>
@@ -1164,12 +1164,16 @@ export default function ReportPage() {
             <p className="text-sm font-bold text-white">スクショを撮って共有しよう</p>
             <p className="mt-1 text-xs text-[#9A9290]">スクリーンショットを保存してから共有してね</p>
             <div className="mt-3 flex justify-center gap-5">
-              <a href="instagram://app" className="flex flex-col items-center gap-1 transition hover:opacity-70">
-                <img src="/icons/instagram.svg" alt="" className="h-11 w-11" />
+              <a href="instagram://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
+                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
+                  <img src="/icons/instagram.svg" alt="" className="h-12 w-12 object-cover" />
+                </span>
                 <span className="text-[10px] text-[#9A9290]">Instagram</span>
               </a>
-              <a href="snssdk1233://app" className="flex flex-col items-center gap-1 transition hover:opacity-70">
-                <img src="/icons/tiktok.svg" alt="" className="h-11 w-11" />
+              <a href="snssdk1233://app" className="flex flex-col items-center gap-1.5 transition hover:opacity-70">
+                <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-md">
+                  <img src="/icons/tiktok.svg" alt="" className="h-12 w-12 object-cover" />
+                </span>
                 <span className="text-[10px] text-[#9A9290]">TikTok</span>
               </a>
             </div>
