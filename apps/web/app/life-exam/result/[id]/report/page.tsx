@@ -1119,42 +1119,56 @@ export default function ReportPage() {
         </button>
       </div>
 
-      {/* ── 画像DL用の隠しシェアカード（結果ページと同じ縦型カード） ── */}
+      {/* ── 画像DL用の隠しシェアカード（IGストーリーズ 540×960 → ×2 = 1080×1920） ── */}
+      {/* 上部250px・下部200pxはIG UIが被るため、カード本体は中央の安全領域に配置 */}
       <div className="fixed left-[-9999px] top-0" aria-hidden>
-        <div ref={shareCardRef} className="font-diagnosis-card w-[360px] overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white p-8 shadow-lg">
-          <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-3 px-4" style={{ marginBottom: 16, borderLeft: "4px solid #F57550" }}>
-            <span className="text-sm font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-              {getWorldLabelDisplay(characterResult.world)}
-            </span>
+        <div
+          ref={shareCardRef}
+          className="flex flex-col items-center justify-center"
+          style={{ width: 540, height: 960, background: "linear-gradient(180deg, #2C2420 0%, #1A1512 50%, #2C2420 100%)" }}
+        >
+          {/* 上部マージン（IGユーザー名領域を避ける） */}
+          <div style={{ height: 125, flexShrink: 0 }} />
+
+          {/* カード本体 */}
+          <div className="font-diagnosis-card overflow-hidden rounded-2xl border border-[#E8DDD0] bg-white shadow-lg" style={{ width: 460, padding: "28px 24px" }}>
+            <div className="text-center rounded-xl border border-[#E8DDD0] bg-white py-2 px-3" style={{ marginBottom: 12, borderLeft: "4px solid #F57550" }}>
+              <span className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
+                {getWorldLabelDisplay(characterResult.world)}
+              </span>
+            </div>
+            <div className="flex justify-center" style={{ marginBottom: 12 }}>
+              <img src={characterResult.imagePath} alt="" className="object-contain" style={{ width: 180, height: 180, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
+            </div>
+            <div className="text-center" style={{ marginBottom: 12 }}>
+              <span className="inline-block mb-1 rounded-full px-2 py-0.5 font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace", fontSize: 11 }}>
+                {CHARACTER_CODE[characterResult.id]}
+              </span>
+              <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.35rem" }}>{characterResult.name}</h2>
+            </div>
+            <div className="text-center" style={{ marginBottom: 12 }}>
+              <p className="whitespace-pre-line leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400, fontSize: 12 }}>{characterResult.description}</p>
+            </div>
+            <div className="border-t border-[#E8DDD0] pt-3">
+              {(["収入", "資産", "健康", "人間関係", "時間"] as const).map((label) => {
+                const row = comparisonRowsDetailed.find((r) => r.subjectName === label);
+                const rank = (row?.rank ?? "C") as JudgementRank;
+                return (
+                  <div key={label} className="flex items-center justify-between py-1.5" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: 13 }}>
+                    <span className="text-[#333333]">{label}</span>
+                    <StatStars filledCount={RANK_STAR_COUNT[rank]} />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 border-t border-[#E8DDD0] pt-2 text-center">
+              <p className="text-[#D0C8C0]" style={{ fontSize: 10 }}>life-exam.vercel.app</p>
+              <p className="mt-0.5 text-[#D0C8C0]" style={{ fontSize: 10 }}>#人生診断</p>
+            </div>
           </div>
-          <div className="flex justify-center" style={{ marginBottom: 16 }}>
-            <img src={characterResult.imagePath} alt="" className="h-auto w-auto max-h-[240px] max-w-[240px] object-contain" style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.15))" }} />
-          </div>
-          <div className="text-center" style={{ marginBottom: 16 }}>
-            <span className="inline-block mb-1 rounded-full px-2 py-0.5 text-xs font-bold tracking-widest" style={{ background: "#F5F0EB", color: "#706860", fontFamily: "monospace" }}>
-              {CHARACTER_CODE[characterResult.id]}
-            </span>
-            <h2 className="font-bold text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontSize: "1.5rem" }}>{characterResult.name}</h2>
-          </div>
-          <div className="text-center" style={{ marginBottom: 16 }}>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-[#333333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif", fontWeight: 400 }}>{characterResult.description}</p>
-          </div>
-          <div className="border-t border-[#E8DDD0] pt-4">
-            {(["収入", "資産", "健康", "人間関係", "時間"] as const).map((label) => {
-              const row = comparisonRowsDetailed.find((r) => r.subjectName === label);
-              const rank = (row?.rank ?? "C") as JudgementRank;
-              return (
-                <div key={label} className="flex items-center justify-between py-2 text-sm" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
-                  <span className="text-[#333333]">{label}</span>
-                  <StatStars filledCount={RANK_STAR_COUNT[rank]} />
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-4 border-t border-[#E8DDD0] pt-3 text-center">
-            <p className="text-[#D0C8C0]" style={{ fontSize: 11 }}>{reportUrl}</p>
-            <p className="mt-1 text-[#D0C8C0]" style={{ fontSize: 11 }}>#人生診断</p>
-          </div>
+
+          {/* 下部マージン（IG返信バー領域を避ける） */}
+          <div style={{ flexGrow: 1, flexShrink: 0 }} />
         </div>
       </div>
     </div>
