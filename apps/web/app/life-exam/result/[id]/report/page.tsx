@@ -314,9 +314,9 @@ export default function ReportPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // AI分析をオンデマンドで生成・取得
+  // AI分析をオンデマンドで生成・取得（データ読み込み完了後のみ）
   useEffect(() => {
-    if (!id || aiAnalysis) return;
+    if (loading || !id || aiAnalysis) return;
     setIsLoadingAnalysis(true);
     fetch("/api/life-exam/generate-ai-analysis", {
       method: "POST",
@@ -330,7 +330,7 @@ export default function ReportPage() {
       .catch(() => {})
       .finally(() => setIsLoadingAnalysis(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, loading]);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
