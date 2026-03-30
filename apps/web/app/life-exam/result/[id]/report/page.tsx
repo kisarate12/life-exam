@@ -1160,7 +1160,20 @@ export default function ReportPage() {
               </div>
             </div>
           </div>
-          <p className="mt-4 text-center text-xs text-[#FFD700]">スクリーンショットして共有してね</p>
+          <div className="mt-5 shrink-0 w-full max-w-sm text-center">
+            <p className="text-sm font-bold text-white">スクショを撮って共有しよう</p>
+            <p className="mt-1 text-xs text-[#9A9290]">スクリーンショットを保存してから共有してね</p>
+            <div className="mt-3 flex justify-center gap-5">
+              <a href="instagram://app" className="flex flex-col items-center gap-1 transition hover:opacity-70">
+                <img src="/icons/instagram.svg" alt="" className="h-11 w-11" />
+                <span className="text-[10px] text-[#9A9290]">Instagram</span>
+              </a>
+              <a href="snssdk1233://app" className="flex flex-col items-center gap-1 transition hover:opacity-70">
+                <img src="/icons/tiktok.svg" alt="" className="h-11 w-11" />
+                <span className="text-[10px] text-[#9A9290]">TikTok</span>
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>
