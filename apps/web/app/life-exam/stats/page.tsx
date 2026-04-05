@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,11 +35,16 @@ interface CharacterStat {
   health_avg: number;
 }
 
+interface AgeCharacterStat extends CharacterStat {
+  age_band: string;
+}
+
 interface StatsData {
   total: number;
   characters: CharacterStat[];
   worlds: { world: string; count: number }[];
   age_bands: { age_band: string; count: number }[];
+  age_characters: AgeCharacterStat[];
 }
 
 const WORLD_COLORS: Record<string, string> = { 空: "#F5A623", 地上: "#5A9E6F", 海: "#3A8FBF", 闇: "#8B5CF6" };
@@ -53,31 +58,60 @@ const RADAR_COLORS = [
   { bg: "rgba(139,92,246,0.2)", border: "#8B5CF6" },
 ];
 
+function formatAge(band: string): string {
+  return band.replace(/(\d+)-(\d+)/, "$1〜$2歳");
+}
+
 export default function StatsPage() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedAge, setSelectedAge] = useState<string>("all");
 
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase.rpc("life_exam_get_public_stats");
       if (error || !data) { setLoading(false); return; }
       const d = data as StatsData;
+      const num = (v: unknown) => Number(v);
       d.characters = (d.characters || []).map((c) => ({
-        ...c,
-        count: Number(c.count),
-        financial_avg: Number(c.financial_avg),
-        human_avg: Number(c.human_avg),
-        social_avg: Number(c.social_avg),
-        time_avg: Number(c.time_avg),
-        health_avg: Number(c.health_avg),
+        ...c, count: num(c.count),
+        financial_avg: num(c.financial_avg), human_avg: num(c.human_avg),
+        social_avg: num(c.social_avg), time_avg: num(c.time_avg), health_avg: num(c.health_avg),
       }));
-      d.worlds = (d.worlds || []).map((w) => ({ ...w, count: Number(w.count) }));
-      d.age_bands = (d.age_bands || []).map((a) => ({ ...a, count: Number(a.count) }));
-      d.total = Number(d.total);
+      d.worlds = (d.worlds || []).map((w) => ({ ...w, count: num(w.count) }));
+      d.age_bands = (d.age_bands || []).map((a) => ({ ...a, count: num(a.count) }));
+      d.age_characters = (d.age_characters || []).map((ac) => ({
+        ...ac, count: num(ac.count),
+        financial_avg: num(ac.financial_avg), human_avg: num(ac.human_avg),
+        social_avg: num(ac.social_avg), time_avg: num(ac.time_avg), health_avg: num(ac.health_avg),
+      }));
+      d.total = num(d.total);
       setStats(d);
       setLoading(false);
     })();
   }, []);
+
+  // フィルター適用後のデータ
+  const filtered = useMemo(() => {
+    if (!stats) return null;
+    if (selectedAge === "all") {
+      return {
+        characters: stats.characters,
+        total: stats.total,
+        worlds: stats.worlds,
+      };
+    }
+    const chars = stats.age_characters
+      .filter((ac) => ac.age_band === selectedAge)
+      .sort((a, b) => b.count - a.count);
+    const total = chars.reduce((s, c) => s + c.count, 0);
+    const worldMap: Record<string, number> = {};
+    chars.forEach((c) => { worldMap[c.world] = (worldMap[c.world] || 0) + c.count; });
+    const worlds = Object.entries(worldMap)
+      .map(([world, count]) => ({ world, count }))
+      .sort((a, b) => b.count - a.count);
+    return { characters: chars, total, worlds };
+  }, [stats, selectedAge]);
 
   if (loading) {
     return (
@@ -94,7 +128,7 @@ export default function StatsPage() {
     );
   }
 
-  if (!stats || !stats.characters.length) {
+  if (!stats || !filtered || !filtered.characters.length) {
     return (
       <div className="min-h-screen relative z-10">
         <Nav />
@@ -105,15 +139,12 @@ export default function StatsPage() {
     );
   }
 
-  const { total, characters, worlds, age_bands } = stats;
+  const { characters, total, worlds } = filtered;
+  const ageLabels = AGE_ORDER.filter((a) => stats.age_bands.some((ab) => ab.age_band === a));
 
-  // 世界別集計
+  // 世界別
   const worldMap = Object.fromEntries(worlds.map((w) => [w.world, w.count]));
   const worldLabels = WORLD_ORDER.filter((w) => worldMap[w]);
-
-  // 年代
-  const ageMap = Object.fromEntries(age_bands.map((a) => [a.age_band, a.count]));
-  const ageLabels = AGE_ORDER.filter((a) => ageMap[a]);
 
   // 世界別レーダー（加重平均）
   const worldRadarDS = worldLabels.map((w, i) => {
@@ -144,6 +175,8 @@ export default function StatsPage() {
   const topWorld = worldLabels.reduce((a, b) => ((worldMap[a] || 0) >= (worldMap[b] || 0) ? a : b), worldLabels[0]);
   const topWorldPct = Math.round(((worldMap[topWorld] || 0) / total) * 100);
 
+  const ageLabel = selectedAge === "all" ? "全年代" : formatAge(selectedAge);
+
   return (
     <div className="min-h-screen relative z-10">
       <Nav />
@@ -151,16 +184,34 @@ export default function StatsPage() {
         <h1 className="mb-1 text-center text-xl font-bold text-[#333]" style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}>
           受験者データ
         </h1>
-        <p className="mb-6 text-center text-xs text-[#9A9290]">
+        <p className="mb-4 text-center text-xs text-[#9A9290]">
           {total.toLocaleString()}名の診断結果
         </p>
+
+        {/* 年代セレクト */}
+        <div className="mb-6 flex justify-center">
+          <div className="inline-flex items-center gap-2 rounded-xl border border-[#E8DDD0] bg-white px-4 py-2 shadow-sm">
+            <span className="text-xs font-bold text-[#9A9290]">年代で絞り込み</span>
+            <select
+              value={selectedAge}
+              onChange={(e) => setSelectedAge(e.target.value)}
+              className="rounded-lg border border-[#E8DDD0] bg-[#f5f0eb] px-3 py-1.5 text-sm font-bold text-[#333] outline-none"
+              style={{ fontFamily: "var(--font-noto-serif-jp), serif" }}
+            >
+              <option value="all">全年代</option>
+              {ageLabels.map((a) => (
+                <option key={a} value={a}>{formatAge(a)}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {/* サマリー */}
         <section className="card-rpg mb-5 p-5">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl bg-[#f5f0eb] p-3 text-center">
               <p className="text-2xl font-extrabold text-[#F57550]">{total.toLocaleString()}</p>
-              <p className="text-[10px] text-[#9A9290]">受験者数</p>
+              <p className="text-[10px] text-[#9A9290]">{ageLabel}の受験者数</p>
             </div>
             <div className="rounded-xl bg-[#f5f0eb] p-3 text-center">
               <p className="text-2xl font-extrabold text-[#F57550]">{characters.length}</p>
@@ -176,8 +227,8 @@ export default function StatsPage() {
             </div>
           </div>
           <div className="mt-4 rounded-xl border border-[#f0e6d0] bg-[#fffbf0] p-3 text-xs leading-relaxed text-[#665]">
-            最も多いキャラクターは<strong className="text-[#F57550]">{characters[0].character_name}</strong>（{characters[0].count.toLocaleString()}名 / {Math.round((characters[0].count / total) * 100)}%）。
-            {topWorld}の世界が全体の<strong className="text-[#F57550]">{topWorldPct}%</strong>を占めています。
+            {ageLabel}で最も多いキャラクターは<strong className="text-[#F57550]">{characters[0].character_name}</strong>（{characters[0].count.toLocaleString()}名 / {Math.round((characters[0].count / total) * 100)}%）。
+            {topWorld}の世界が<strong className="text-[#F57550]">{topWorldPct}%</strong>を占めています。
           </div>
         </section>
 
@@ -214,19 +265,28 @@ export default function StatsPage() {
             />
           </section>
 
-          {/* 年代分布 */}
-          <section className="card-rpg p-5">
-            <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
-              年代分布
-            </h2>
-            <Bar
-              data={{
-                labels: ageLabels.map((l) => l.replace(/(\d+)-(\d+)/, "$1〜$2歳")),
-                datasets: [{ data: ageLabels.map((l) => ageMap[l] || 0), backgroundColor: "#3A8FBF", borderRadius: 6 }],
-              }}
-              options={{ plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }}
-            />
-          </section>
+          {/* 年代分布（全体時のみ表示） */}
+          {selectedAge === "all" && (
+            <section className="card-rpg p-5">
+              <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
+                年代分布
+              </h2>
+              <Bar
+                data={{
+                  labels: ageLabels.map(formatAge),
+                  datasets: [{
+                    data: ageLabels.map((a) => {
+                      const found = stats.age_bands.find((ab) => ab.age_band === a);
+                      return found ? found.count : 0;
+                    }),
+                    backgroundColor: "#3A8FBF",
+                    borderRadius: 6,
+                  }],
+                }}
+                options={{ plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }}
+              />
+            </section>
+          )}
 
           {/* 世界別レーダー */}
           <section className="card-rpg p-5">
