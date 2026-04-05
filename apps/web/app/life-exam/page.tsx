@@ -143,7 +143,26 @@ export default function LifeExamPage() {
           セクション①：ヒーロー
           ====================================================== */}
       <section id="section-1" className="top-page-section section min-h-screen bg-white pt-[73px]">
-        <div className="relative flex min-h-screen flex-col items-center justify-center px-4 text-center">
+        <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 text-center">
+
+          {/* キャラクター装飾（上段4体） */}
+          <div className="fade-in-content mb-6 flex items-end justify-center gap-3 sm:gap-5">
+            {[
+              { name: "イカロス", size: "w-16 h-16 sm:w-20 sm:h-20" },
+              { name: "孤独な大王", size: "w-14 h-14 sm:w-18 sm:h-18" },
+              { name: "ツクヨミ", size: "w-16 h-16 sm:w-20 sm:h-20" },
+              { name: "ナマケモノ", size: "w-14 h-14 sm:w-18 sm:h-18" },
+            ].map((c) => (
+              <img
+                key={c.name}
+                src={`/life-diagnosis/characters/${encodeURIComponent(c.name)}.png`}
+                alt={c.name}
+                className={`${c.size} object-contain drop-shadow-md`}
+                loading="eager"
+              />
+            ))}
+          </div>
+
           <div className="fade-in-content">
             <p
               className="font-bold leading-tight text-[var(--theme-text)]"
@@ -161,6 +180,24 @@ export default function LifeExamPage() {
             <p>資産・収入・時間・人間関係・健康</p>
             <p className="mt-0.5">5つの資本から</p>
             <p className="mt-3 font-semibold">あなたの人生ランクを診断</p>
+          </div>
+
+          {/* キャラクター装飾（下段4体） */}
+          <div className="fade-in-content mt-6 flex items-start justify-center gap-3 sm:gap-5">
+            {[
+              { name: "ドワーフの王", size: "w-14 h-14 sm:w-18 sm:h-18" },
+              { name: "タヌキ", size: "w-16 h-16 sm:w-20 sm:h-20" },
+              { name: "オークの族長", size: "w-14 h-14 sm:w-18 sm:h-18" },
+              { name: "蚊", size: "w-16 h-16 sm:w-20 sm:h-20" },
+            ].map((c) => (
+              <img
+                key={c.name}
+                src={`/life-diagnosis/characters/${encodeURIComponent(c.name)}.png`}
+                alt={c.name}
+                className={`${c.size} object-contain drop-shadow-md`}
+                loading="eager"
+              />
+            ))}
           </div>
 
           {/* バッジ: 3分 / 25問 / 無料 */}
