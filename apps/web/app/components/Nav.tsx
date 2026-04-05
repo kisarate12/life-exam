@@ -39,6 +39,9 @@ export default function Nav() {
           <Link href="/life-exam/guide" className={`rounded-lg px-3 py-1.5 text-sm ${linkClass("/life-exam/guide")}`}>
             解説
           </Link>
+          <Link href="/life-exam/stats" className={`rounded-lg px-3 py-1.5 text-sm ${linkClass("/life-exam/stats")}`}>
+            統計
+          </Link>
         </div>
       </nav>
     </header>
