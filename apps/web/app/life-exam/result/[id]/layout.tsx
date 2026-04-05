@@ -80,13 +80,13 @@ export async function generateMetadata({
   const description =
     worldLabel && characterName
       ? `${worldLabel}の住人「${characterName}」。あなたはどのキャラクター？`
-      : "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
+      : "人生を相対評価する。5科目・50問で偏差値と合否を算出。";
 
   // 事前生成した OGP カード画像を使用
   const characterId = characterName ? NAME_TO_ID[characterName] : null;
   const ogImageUrl = characterId
     ? `${baseUrl}/ogp/${characterId}.png`
-    : `${baseUrl}/og.png`;
+    : `${baseUrl}/ogp/life-exam.png`;
 
   return {
     title,

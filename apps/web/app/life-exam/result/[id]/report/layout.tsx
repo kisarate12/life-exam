@@ -89,7 +89,7 @@ export async function generateMetadata({
   const ogImageUrl =
     characterId && OGP_IMAGE_EXISTS.has(characterId)
       ? `${baseUrl}/ogp/${characterId}.png`
-      : `${baseUrl}/og.png`;
+      : `${baseUrl}/ogp/life-exam.png`;
 
   const reportUrl = `${baseUrl}/life-exam/result/${id}/report`;
 

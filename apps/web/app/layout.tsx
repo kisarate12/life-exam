@@ -31,8 +31,8 @@ const notoSerifJP = Noto_Serif_JP({
 });
 
 const siteTitle = "人生診断";
-const siteDescription = "人生を相対評価する。5科目・25問で偏差値と合否を算出。";
-const ogImagePath = "/og.png";
+const siteDescription = "人生を相対評価する。5科目・50問で偏差値と合否を算出。";
+const ogImagePath = "/ogp/life-exam.png";
 
 /** OGP画像などメタの絶対URL。本番はNEXT_PUBLIC_SITE_URLで固定（VercelのVERCEL_URLはデプロイごとで変わるため） */
 const baseUrl =
