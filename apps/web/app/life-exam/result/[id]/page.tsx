@@ -15,7 +15,6 @@ import { getWorldLabelDisplay, getWorldDisplay, getWorldShort } from "@/lib/life
 import { getCharacterResult, diagnoseFromScores, getEvolutionPaths, SUMMIT_MESSAGE, CHARACTER_CODE } from "@/lib/life-diagnosis";
 import { CHARACTER_REPORTS } from "@/lib/life-diagnosis/characterReports";
 import Nav from "../../../components/Nav";
-import { ShareCardModal } from "./ShareCardModal";
 
 /** ランキング1件のデータ構造（UI用。DBは life_exam_ranking_entries） */
 export interface RankingEntry {
@@ -117,7 +116,8 @@ export default function LifeExamResultPage() {
   } | null>(null);
   const [characterImageError, setCharacterImageError] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareBarVisible, setShareBarVisible] = useState(false);
+  const shareObserverRef = useRef<HTMLDivElement>(null);
 
 
   const [rankingStats, setRankingStats] = useState<{
@@ -222,6 +222,18 @@ export default function LifeExamResultPage() {
       });
     })();
   }, [attempt, scores, subjects, id, comparisonStats]);
+
+  // ページ下部到達でシェアバー表示
+  useEffect(() => {
+    const el = shareObserverRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShareBarVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading]);
 
   if (loading) {
     if (isFromExam) {
@@ -357,27 +369,44 @@ export default function LifeExamResultPage() {
   return (
     <div className="min-h-screen relative z-10">
       {/* スティッキーCTAバー（モバイル用） */}
-      {!shareModalOpen && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-40 sm:hidden"
-          style={{ background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 80%, rgba(255,255,255,0) 100%)", paddingTop: 16, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 sm:hidden"
+        style={{ background: "linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 80%, rgba(255,255,255,0) 100%)", paddingTop: 16, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }}
+      >
+        <Link
+          href={`/life-exam/result/${id}/report`}
+          className="block w-full rounded-xl py-3.5 text-center text-sm font-bold text-white transition hover:brightness-110"
+          style={{ background: "linear-gradient(135deg, #F57550, #FFB84E)", boxShadow: "0 4px 16px rgba(245,117,80,0.45)" }}
         >
-          <Link
-            href={`/life-exam/result/${id}/report`}
-            className="block w-full rounded-xl py-3.5 text-center text-sm font-bold text-white transition hover:brightness-110"
-            style={{ background: "linear-gradient(135deg, #F57550, #FFB84E)", boxShadow: "0 4px 16px rgba(245,117,80,0.45)" }}
-          >
-            詳細レポートを見る（無料）
-          </Link>
-        </div>
-      )}
+          詳細レポートを見る（無料）
+        </Link>
+      </div>
 
-      <ShareCardModal
-        open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-        character={characterResult}
-        shareUrl={resultUrl}
-      />
+      {/* ページ下部到達時のシェアバー */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-5 py-3 transition-all duration-300"
+        style={{
+          background: "rgba(0,0,0,0.85)",
+          backdropFilter: "blur(8px)",
+          transform: shareBarVisible ? "translateY(0)" : "translateY(100%)",
+          opacity: shareBarVisible ? 1 : 0,
+          pointerEvents: shareBarVisible ? "auto" : "none",
+        }}
+      >
+        <span className="text-xs font-bold text-white/70">シェア</span>
+        <a href={shareXUrl} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20" aria-label="Xでシェア">
+          <img src="/icons/x.svg" alt="" className="h-5 w-5 brightness-0 invert" />
+        </a>
+        <a href={shareLineUrl} target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20" aria-label="LINEでシェア">
+          <img src="/icons/line.svg" alt="" className="h-5 w-5" />
+        </a>
+        <a href="instagram://app" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20" aria-label="Instagramでシェア">
+          <img src="/icons/instagram.svg" alt="" className="h-5 w-5" />
+        </a>
+        <a href="snssdk1233://app" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20" aria-label="TikTokでシェア">
+          <img src="/icons/tiktok.svg" alt="" className="h-5 w-5" />
+        </a>
+      </div>
 
       <Nav />
       <main className="mx-auto max-w-2xl px-4 py-8 pb-24 sm:py-10 sm:pb-10">
@@ -703,15 +732,18 @@ export default function LifeExamResultPage() {
             <a href={shareLineUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="LINEでシェア">
               <img src="/icons/line.svg" alt="" className="h-9 w-9 shrink-0" />
             </a>
-            <button type="button" onClick={() => setShareModalOpen(true)} className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="Instagramでシェア">
+            <a href="instagram://app" className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="Instagramでシェア">
               <img src="/icons/instagram.svg" alt="" className="h-9 w-9 shrink-0" />
-            </button>
-            <button type="button" onClick={() => setShareModalOpen(true)} className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="TikTokでシェア">
+            </a>
+            <a href="snssdk1233://app" className="inline-flex items-center justify-center transition hover:opacity-70" aria-label="TikTokでシェア">
               <img src="/icons/tiktok.svg" alt="" className="h-9 w-9 shrink-0" />
-            </button>
+            </a>
           </div>
         </section>
 
+
+        {/* シェアバー表示トリガー */}
+        <div ref={shareObserverRef} className="h-px" aria-hidden />
 
         <div className="mt-10 flex justify-center">
           <Link href="/life-exam" className="btn-rpg-main">
