@@ -137,8 +137,6 @@ export async function POST(req: NextRequest) {
   const ageBand = attempt.age_band_at_attempt ?? null;
   const gender = attempt.gender_at_attempt ?? null;
   const deviation = attempt.same_age_deviation_value ?? null;
-  const sameGenRank = attempt.same_gen_rank ?? null;
-  const sameGenTotal = attempt.same_gen_total ?? null;
 
   const ageBandText = ageBand ? `${ageBand.replace(/^(\d+).*/, "$1")}代` : "年代不明";
   const genderText =
@@ -150,12 +148,9 @@ export async function POST(req: NextRequest) {
     .map((r) => `  - ${r.name}：ランク${r.rank}（偏差値${r.dev}、${r.percentileText}）`)
     .join("\n");
 
-  const rankingText =
-    sameGenRank && sameGenTotal
-      ? `同世代${sameGenTotal}人中${sameGenRank}位（偏差値${deviation?.toFixed(1) ?? "不明"}）`
-      : deviation
-      ? `同世代偏差値 ${deviation.toFixed(1)}`
-      : "ランキング情報なし";
+  const rankingText = deviation
+    ? `同世代偏差値 ${deviation.toFixed(1)}`
+    : "ランキング情報なし";
 
   const prompt = `あなたは人生診断の専門家アナリストです。以下のデータをもとに、ユーザーへの個人分析レポートを日本語で書いてください。
 

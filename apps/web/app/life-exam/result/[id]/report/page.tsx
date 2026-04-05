@@ -494,21 +494,22 @@ export default function ReportPage() {
   const ageBandLabel = formatAgeBand(attempt.age_band_at_attempt);
   const genderLabel = formatGender(attempt.gender_at_attempt);
 
+  // 順位系カラムは削除済み（RPCで都度計算）。将来 RPC 連携時に復活可能
   const rankingCards = [
     {
       label: `同世代${ageBandLabel ? `（${ageBandLabel}）` : ""}`,
-      rank: attempt.same_gen_rank,
-      total: attempt.same_gen_total,
+      rank: null as number | null,
+      total: null as number | null,
     },
     {
       label: `性別${genderLabel ? `（${genderLabel}）` : ""}`,
-      rank: attempt.gender_rank,
-      total: attempt.gender_total,
+      rank: null as number | null,
+      total: null as number | null,
     },
     {
       label: `同世代×性別`,
-      rank: attempt.same_gen_gender_rank,
-      total: attempt.same_gen_gender_total,
+      rank: null as number | null,
+      total: null as number | null,
     },
   ];
 

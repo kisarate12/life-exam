@@ -191,24 +191,11 @@ export default function LifeExamResultPage() {
       scoreBySubject[row.subject_id] = Number(row.score);
     });
     // キャラクター判定はスコア絶対値ベースで統一
-    const characterResult = getCharacterResult(diagnoseFromScores(scoreBySubject));
-    const worldShort = getWorldShort(characterResult.world);
     const totalScoreDisplay = Math.round((Number(attempt.total_score) / 500) * 900);
 
-    (async () => {
-      await supabase.from("life_exam_ranking_entries").upsert(
-        {
-          attempt_id: id,
-          user_id: attempt.user_id,
-          nickname: "名無しの冒険者",
-          world: worldShort,
-          character_name: characterResult.name,
-          character_image: characterResult.imagePath,
-          total_score: totalScoreDisplay,
-        },
-        { onConflict: "attempt_id" }
-      );
+    // ranking_entries は DB trigger (tr_life_exam_auto_ranking) で自動生成されるため、クライアント側での upsert は不要
 
+    (async () => {
       const { data, error: err } = await supabase.rpc("get_life_exam_ranking_position", {
         p_total_score: totalScoreDisplay,
       });

@@ -54,14 +54,6 @@ export interface LifeExamAttempt {
   total_score: number;
   deviation_value: number;
   passed: boolean;
-  national_rank: number | null;
-  national_total: number | null;
-  same_gen_rank: number | null;
-  same_gen_total: number | null;
-  gender_rank: number | null;
-  gender_total: number | null;
-  same_gen_gender_rank: number | null;
-  same_gen_gender_total: number | null;
   same_age_mean: number | null;
   same_age_stddev: number | null;
   same_age_deviation_value: number | null;
