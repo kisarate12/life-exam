@@ -24,96 +24,57 @@ ChartJS.register(
   Tooltip, Legend, Filler,
 );
 
-// ── ポイント → ラベル変換 ──
-function assetLabel(pts: number): string {
-  if (pts >= 100) return "1億円以上";
-  if (pts >= 90) return "5000万〜9999万円";
-  if (pts >= 80) return "3000万〜4999万円";
-  if (pts >= 70) return "2000万〜2999万円";
-  if (pts >= 60) return "1000万〜1999万円";
-  if (pts >= 45) return "500万〜999万円";
-  if (pts >= 30) return "100万〜499万円";
-  if (pts >= 15) return "0〜99万円";
-  return "0円未満";
-}
-function incomeLabel(pts: number): string {
-  if (pts >= 100) return "3000万円以上";
-  if (pts >= 90) return "2000〜2999万円";
-  if (pts >= 80) return "1500〜1999万円";
-  if (pts >= 68) return "1000〜1499万円";
-  if (pts >= 58) return "800〜999万円";
-  if (pts >= 52) return "700〜799万円";
-  if (pts >= 46) return "600〜699万円";
-  if (pts >= 38) return "500〜599万円";
-  if (pts >= 30) return "400〜499万円";
-  if (pts >= 20) return "300〜399万円";
-  if (pts >= 10) return "200〜299万円";
-  if (pts >= 4) return "200万円未満";
-  return "無収入";
-}
-
-interface StatsRow {
+interface CharacterStat {
   character_name: string;
   world: string;
-  asset: string;
-  income: string;
-  age_band: string | null;
-  financial_score: number;
-  human_score: number;
-  social_score: number;
-  time_score: number;
-  health_score: number;
+  count: number;
+  financial_avg: number;
+  human_avg: number;
+  social_avg: number;
+  time_avg: number;
+  health_avg: number;
+}
+
+interface StatsData {
+  total: number;
+  characters: CharacterStat[];
+  worlds: { world: string; count: number }[];
+  age_bands: { age_band: string; count: number }[];
 }
 
 const WORLD_COLORS: Record<string, string> = { 空: "#F5A623", 地上: "#5A9E6F", 海: "#3A8FBF", 闇: "#8B5CF6" };
-const INCOME_ORDER = [
-  "無収入", "200万円未満", "200〜299万円", "300〜399万円", "400〜499万円",
-  "500〜599万円", "600〜699万円", "700〜799万円", "800〜999万円",
-  "1000〜1499万円", "1500〜1999万円", "2000〜2999万円", "3000万円以上",
-];
-const ASSET_ORDER = [
-  "0円未満", "0〜99万円", "100万〜499万円", "500万〜999万円",
-  "1000万〜1999万円", "2000万〜2999万円", "3000万〜4999万円",
-  "5000万〜9999万円", "1億円以上",
-];
+const WORLD_ORDER = ["空", "地上", "海", "闇"];
+const AGE_ORDER = ["15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64"];
 
-function countBy(arr: StatsRow[], key: keyof StatsRow): Record<string, number> {
-  const m: Record<string, number> = {};
-  arr.forEach((d) => {
-    const v = String(d[key]);
-    m[v] = (m[v] || 0) + 1;
-  });
-  return m;
-}
+const RADAR_COLORS = [
+  { bg: "rgba(245,166,35,0.2)", border: "#F5A623" },
+  { bg: "rgba(245,117,80,0.2)", border: "#F57550" },
+  { bg: "rgba(58,143,191,0.2)", border: "#3A8FBF" },
+  { bg: "rgba(139,92,246,0.2)", border: "#8B5CF6" },
+];
 
 export default function StatsPage() {
-  const [rows, setRows] = useState<StatsRow[]>([]);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase.rpc("life_exam_get_public_stats");
       if (error || !data) { setLoading(false); return; }
-      const raw = data as Array<{
-        character_name: string; world: string; age_band: string | null;
-        asset_points: number | null; income_points: number | null;
-        financial_score: number; human_score: number; social_score: number;
-        time_score: number; health_score: number;
-      }>;
-      setRows(
-        raw.map((r) => ({
-          character_name: r.character_name,
-          world: r.world,
-          asset: assetLabel(r.asset_points ?? 0),
-          income: incomeLabel(r.income_points ?? 0),
-          age_band: r.age_band,
-          financial_score: Number(r.financial_score),
-          human_score: Number(r.human_score),
-          social_score: Number(r.social_score),
-          time_score: Number(r.time_score),
-          health_score: Number(r.health_score),
-        }))
-      );
+      const d = data as StatsData;
+      d.characters = (d.characters || []).map((c) => ({
+        ...c,
+        count: Number(c.count),
+        financial_avg: Number(c.financial_avg),
+        human_avg: Number(c.human_avg),
+        social_avg: Number(c.social_avg),
+        time_avg: Number(c.time_avg),
+        health_avg: Number(c.health_avg),
+      }));
+      d.worlds = (d.worlds || []).map((w) => ({ ...w, count: Number(w.count) }));
+      d.age_bands = (d.age_bands || []).map((a) => ({ ...a, count: Number(a.count) }));
+      d.total = Number(d.total);
+      setStats(d);
       setLoading(false);
     })();
   }, []);
@@ -133,7 +94,7 @@ export default function StatsPage() {
     );
   }
 
-  if (!rows.length) {
+  if (!stats || !stats.characters.length) {
     return (
       <div className="min-h-screen relative z-10">
         <Nav />
@@ -144,44 +105,44 @@ export default function StatsPage() {
     );
   }
 
-  // ── 集計 ──
-  const charCount = countBy(rows, "character_name");
-  const charLabels = Object.keys(charCount).sort((a, b) => charCount[b] - charCount[a]);
-  const worldCount = countBy(rows, "world");
-  const worldLabels = ["空", "地上", "海", "闇"].filter((w) => worldCount[w]);
-  const incomeCount = countBy(rows, "income");
-  const incomeLabels = INCOME_ORDER.filter((l) => incomeCount[l]);
-  const assetCount = countBy(rows, "asset");
-  const assetLabelsFiltered = ASSET_ORDER.filter((l) => assetCount[l]);
-  const ageCount = countBy(rows, "age_band");
-  const ageOrder = ["15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64"];
-  const ageLabels = ageOrder.filter((l) => ageCount[l]);
+  const { total, characters, worlds, age_bands } = stats;
 
-  // レーダー用（上位4キャラ）
-  const topChars = charLabels.slice(0, 4);
-  const radarColors = [
-    { bg: "rgba(245,166,35,0.2)", border: "#F5A623" },
-    { bg: "rgba(245,117,80,0.2)", border: "#F57550" },
-    { bg: "rgba(58,143,191,0.2)", border: "#3A8FBF" },
-    { bg: "rgba(139,92,246,0.2)", border: "#8B5CF6" },
-  ];
-  const radarDatasets = topChars.map((ch, i) => {
-    const r = rows.filter((d) => d.character_name === ch);
-    const avg = (k: keyof StatsRow) => Math.round((r.reduce((s, d) => s + Number(d[k]), 0) / r.length) * 10) / 10;
+  // 世界別集計
+  const worldMap = Object.fromEntries(worlds.map((w) => [w.world, w.count]));
+  const worldLabels = WORLD_ORDER.filter((w) => worldMap[w]);
+
+  // 年代
+  const ageMap = Object.fromEntries(age_bands.map((a) => [a.age_band, a.count]));
+  const ageLabels = AGE_ORDER.filter((a) => ageMap[a]);
+
+  // 世界別レーダー（加重平均）
+  const worldRadarDS = worldLabels.map((w, i) => {
+    const chars = characters.filter((c) => c.world === w);
+    const wTotal = chars.reduce((s, c) => s + c.count, 0);
+    const wavg = (k: keyof CharacterStat) =>
+      Math.round((chars.reduce((s, c) => s + Number(c[k]) * c.count, 0) / wTotal) * 10) / 10;
     return {
-      label: ch,
-      data: [avg("financial_score"), avg("human_score"), avg("social_score"), avg("time_score"), avg("health_score")],
-      backgroundColor: radarColors[i].bg,
-      borderColor: radarColors[i].border,
+      label: w + "の世界",
+      data: [wavg("financial_avg"), wavg("human_avg"), wavg("social_avg"), wavg("time_avg"), wavg("health_avg")],
+      backgroundColor: RADAR_COLORS[i].bg,
+      borderColor: WORLD_COLORS[w],
       borderWidth: 2,
     };
   });
 
-  // 年収の最頻値
-  const topIncome = incomeLabels.reduce((a, b) => ((incomeCount[a] || 0) >= (incomeCount[b] || 0) ? a : b), incomeLabels[0]);
-  const topAsset = assetLabelsFiltered.reduce((a, b) => ((assetCount[a] || 0) >= (assetCount[b] || 0) ? a : b), assetLabelsFiltered[0]);
-  const skyCount = rows.filter((r) => r.world === "空").length;
-  const skyPct = Math.round((skyCount / rows.length) * 100);
+  // 上位4キャラレーダー
+  const topChars = characters.slice(0, 4);
+  const topRadarDS = topChars.map((c, i) => ({
+    label: c.character_name,
+    data: [c.financial_avg, c.human_avg, c.social_avg, c.time_avg, c.health_avg],
+    backgroundColor: RADAR_COLORS[i].bg,
+    borderColor: RADAR_COLORS[i].border,
+    borderWidth: 2,
+  }));
+
+  // 最多世界
+  const topWorld = worldLabels.reduce((a, b) => ((worldMap[a] || 0) >= (worldMap[b] || 0) ? a : b), worldLabels[0]);
+  const topWorldPct = Math.round(((worldMap[topWorld] || 0) / total) * 100);
 
   return (
     <div className="min-h-screen relative z-10">
@@ -191,32 +152,32 @@ export default function StatsPage() {
           受験者データ
         </h1>
         <p className="mb-6 text-center text-xs text-[#9A9290]">
-          受験者 {rows.length}名のリアルデータ
+          {total.toLocaleString()}名の診断結果
         </p>
 
         {/* サマリー */}
         <section className="card-rpg mb-5 p-5">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl bg-[#f5f0eb] p-3 text-center">
-              <p className="text-2xl font-extrabold text-[#F57550]">{rows.length}</p>
+              <p className="text-2xl font-extrabold text-[#F57550]">{total.toLocaleString()}</p>
               <p className="text-[10px] text-[#9A9290]">受験者数</p>
             </div>
             <div className="rounded-xl bg-[#f5f0eb] p-3 text-center">
-              <p className="text-2xl font-extrabold text-[#F57550]">{charLabels.length}</p>
+              <p className="text-2xl font-extrabold text-[#F57550]">{characters.length}</p>
               <p className="text-[10px] text-[#9A9290]">キャラ種類</p>
             </div>
             <div className="rounded-xl bg-[#f5f0eb] p-3 text-center">
-              <p className="text-lg font-extrabold text-[#F57550]">{topIncome}</p>
-              <p className="text-[10px] text-[#9A9290]">年収 最頻値</p>
+              <p className="text-2xl font-extrabold text-[#F57550]">{characters[0].character_name}</p>
+              <p className="text-[10px] text-[#9A9290]">最多キャラ</p>
             </div>
             <div className="rounded-xl bg-[#f5f0eb] p-3 text-center">
-              <p className="text-lg font-extrabold text-[#F57550]">{topAsset}</p>
-              <p className="text-[10px] text-[#9A9290]">資産 最頻値</p>
+              <p className="text-2xl font-extrabold text-[#F57550]">{topWorldPct}%</p>
+              <p className="text-[10px] text-[#9A9290]">{topWorld}の世界</p>
             </div>
           </div>
           <div className="mt-4 rounded-xl border border-[#f0e6d0] bg-[#fffbf0] p-3 text-xs leading-relaxed text-[#665]">
-            受験者の<strong className="text-[#F57550]">{skyPct}%</strong>が空の世界の住人。
-            年収は{topIncome}帯、資産は{topAsset}帯に集中しています。
+            最も多いキャラクターは<strong className="text-[#F57550]">{characters[0].character_name}</strong>（{characters[0].count.toLocaleString()}名 / {Math.round((characters[0].count / total) * 100)}%）。
+            {topWorld}の世界が全体の<strong className="text-[#F57550]">{topWorldPct}%</strong>を占めています。
           </div>
         </section>
 
@@ -228,10 +189,14 @@ export default function StatsPage() {
             </h2>
             <Bar
               data={{
-                labels: charLabels,
-                datasets: [{ data: charLabels.map((l) => charCount[l]), backgroundColor: charLabels.map((l) => { const r = rows.find((d) => d.character_name === l); return r ? (WORLD_COLORS[r.world] || "#ccc") : "#ccc"; }), borderRadius: 6 }],
+                labels: characters.map((c) => c.character_name),
+                datasets: [{
+                  data: characters.map((c) => c.count),
+                  backgroundColor: characters.map((c) => WORLD_COLORS[c.world] || "#ccc"),
+                  borderRadius: 6,
+                }],
               }}
-              options={{ indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }}
+              options={{ indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }}
             />
           </section>
 
@@ -242,38 +207,10 @@ export default function StatsPage() {
             </h2>
             <Doughnut
               data={{
-                labels: worldLabels.map((w) => w + "の世界"),
-                datasets: [{ data: worldLabels.map((w) => worldCount[w]), backgroundColor: worldLabels.map((w) => WORLD_COLORS[w]) }],
+                labels: worldLabels.map((w) => `${w}の世界 (${Math.round(((worldMap[w] || 0) / total) * 100)}%)`),
+                datasets: [{ data: worldLabels.map((w) => worldMap[w] || 0), backgroundColor: worldLabels.map((w) => WORLD_COLORS[w]) }],
               }}
               options={{ plugins: { legend: { position: "bottom" } } }}
-            />
-          </section>
-
-          {/* 年収分布 */}
-          <section className="card-rpg p-5">
-            <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
-              年収分布
-            </h2>
-            <Bar
-              data={{
-                labels: incomeLabels,
-                datasets: [{ data: incomeLabels.map((l) => incomeCount[l] || 0), backgroundColor: "#F57550", borderRadius: 6 }],
-              }}
-              options={{ plugins: { legend: { display: false } }, scales: { x: { ticks: { maxRotation: 45, minRotation: 45, font: { size: 10 } } }, y: { beginAtZero: true, ticks: { stepSize: 2 } } } }}
-            />
-          </section>
-
-          {/* 資産分布 */}
-          <section className="card-rpg p-5">
-            <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
-              資産分布
-            </h2>
-            <Bar
-              data={{
-                labels: assetLabelsFiltered,
-                datasets: [{ data: assetLabelsFiltered.map((l) => assetCount[l] || 0), backgroundColor: "#FFB84E", borderRadius: 6 }],
-              }}
-              options={{ plugins: { legend: { display: false } }, scales: { x: { ticks: { maxRotation: 45, minRotation: 45, font: { size: 10 } } }, y: { beginAtZero: true, ticks: { stepSize: 2 } } } }}
             />
           </section>
 
@@ -285,27 +222,86 @@ export default function StatsPage() {
             <Bar
               data={{
                 labels: ageLabels.map((l) => l.replace(/(\d+)-(\d+)/, "$1〜$2歳")),
-                datasets: [{ data: ageLabels.map((l) => ageCount[l] || 0), backgroundColor: "#3A8FBF", borderRadius: 6 }],
+                datasets: [{ data: ageLabels.map((l) => ageMap[l] || 0), backgroundColor: "#3A8FBF", borderRadius: 6 }],
               }}
-              options={{ plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 2 } } } }}
+              options={{ plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }}
             />
           </section>
 
-          {/* レーダー */}
+          {/* 世界別レーダー */}
           <section className="card-rpg p-5">
             <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
-              キャラ別 5科目平均
+              世界別 5科目平均
             </h2>
             <Radar
-              data={{
-                labels: ["資産", "収入", "社会", "時間", "健康"],
-                datasets: radarDatasets,
-              }}
+              data={{ labels: ["資産", "収入", "社会", "時間", "健康"], datasets: worldRadarDS }}
               options={{
                 scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } },
-                plugins: { legend: { position: "bottom", labels: { font: { size: 11 } } } },
+                plugins: { legend: { position: "bottom", labels: { font: { size: 10 } } } },
               }}
             />
+          </section>
+
+          {/* 上位キャラレーダー */}
+          <section className="card-rpg p-5 sm:col-span-2">
+            <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
+              上位キャラ 5科目平均
+            </h2>
+            <div className="mx-auto" style={{ maxWidth: 480 }}>
+              <Radar
+                data={{ labels: ["資産", "収入", "社会", "時間", "健康"], datasets: topRadarDS }}
+                options={{
+                  scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } },
+                  plugins: { legend: { position: "bottom", labels: { font: { size: 11 } } } },
+                }}
+              />
+            </div>
+          </section>
+
+          {/* 全キャラ一覧 */}
+          <section className="card-rpg p-5 sm:col-span-2">
+            <h2 className="mb-3 text-sm font-bold text-[#555]" style={{ borderLeft: "4px solid #F57550", paddingLeft: 10 }}>
+              全キャラクター一覧
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b-2 border-[#E8DDD0]">
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-left font-semibold text-[#666]">キャラクター</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-left font-semibold text-[#666]">世界</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">人数</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">割合</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">資産</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">収入</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">社会</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">時間</th>
+                    <th className="bg-[#f5f0eb] px-2 py-2 text-right font-semibold text-[#666]">健康</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {characters.map((c) => (
+                    <tr key={c.character_name} className="border-b border-[#f0ebe3] hover:bg-[#faf8f5]">
+                      <td className="px-2 py-2 font-medium">{c.character_name}</td>
+                      <td className="px-2 py-2">
+                        <span
+                          className="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                          style={{ background: WORLD_COLORS[c.world] || "#ccc" }}
+                        >
+                          {c.world}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums">{c.count.toLocaleString()}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{((c.count / total) * 100).toFixed(1)}%</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{c.financial_avg}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{c.human_avg}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{c.social_avg}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{c.time_avg}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{c.health_avg}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         </div>
       </main>
